@@ -1,0 +1,273 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}دسته‌بندی محصولات | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block meta_description %}همه دسته‌بندی‌های محصولات فروشگاه JOKERPLAYSTATION نیشابور شامل بازی، کنسول، لوازم جانبی و ... با بهترین قیمت و ضمانت اصالت.{% endblock %}
+
+{% block meta_keywords %}دسته‌بندی محصولات, بازی پلی استیشن, کنسول PS5, لوازم جانبی گیمینگ, نیشابور{% endblock %}
+
+{% block og_title %}دسته‌بندی محصولات | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block og_description %}همه دسته‌بندی‌های محصولات فروشگاه تخصصی پلی استیشن در نیشابور با بهترین قیمت و ضمانت اصالت.{% endblock %}
+
+{% block schema %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "دسته‌بندی محصولات JOKERPLAYSTATION",
+    "description": "همه دسته‌بندی‌های محصولات فروشگاه تخصصی پلی استیشن در نیشابور",
+    "numberOfItems": {{ categories.count }},
+    "itemListElement": [
+        {% for category in categories %}
+        {
+            "@type": "ListItem",
+            "position": {{ forloop.counter }},
+            "name": "{{ category.name }}",
+            "url": "{{ request.scheme }}://{{ request.get_host }}{{ category.get_absolute_url }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<style>
+    /* هدر صفحه */
+    .page-header {
+        text-align: center;
+        margin-bottom: 60px;
+        padding: 20px 0;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #ffffff;
+        position: relative;
+        display: inline-block;
+    }
+
+    .page-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 3px;
+        background: var(--header-accent);
+        border-radius: 2px;
+    }
+
+    .page-description {
+        color: #a0a0b0;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 20px auto 0;
+        line-height: 1.8;
+    }
+
+    /* گرید دسته‌بندی‌ها با عکس دایره‌ای */
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 30px;
+        margin-bottom: 60px;
+    }
+
+    .category-card {
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 20px;
+        border-radius: 20px;
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--header-accent);
+        box-shadow: 0 15px 30px rgba(var(--header-accent-rgb), 0.2);
+    }
+
+    .category-image-circle {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #0a0f1f;
+        border: 3px solid transparent;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .category-card:hover .category-image-circle {
+        border-color: var(--header-accent);
+        transform: scale(1.05);
+        box-shadow: 0 15px 30px rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    .category-image-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .category-card:hover .category-image-circle img {
+        transform: scale(1.1);
+    }
+
+    .category-image-circle i {
+        font-size: 3rem;
+        color: var(--header-accent);
+    }
+
+    .category-card h2 {
+        color: #ffffff;
+        font-size: 1.3rem;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .category-type {
+        color: var(--header-accent);
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .category-stats {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 15px;
+        padding: 10px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 3px;
+    }
+
+    .stat-label {
+        color: #a0a0b0;
+        font-size: 0.75rem;
+    }
+
+    .category-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--header-accent);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .category-link:hover {
+        gap: 12px;
+        color: #ffffff;
+    }
+
+    /* ریسپانسیو */
+    @media (max-width: 992px) {
+        .page-title { font-size: 2rem; }
+        .categories-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+        .page-header { margin-bottom: 40px; }
+        .page-title { font-size: 1.8rem; }
+        .page-description { font-size: 1rem; }
+        .categories-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .category-image-circle { width: 130px; height: 130px; }
+        .category-card h2 { font-size: 1.2rem; }
+    }
+
+    @media (max-width: 576px) {
+        .page-title { font-size: 1.5rem; }
+        .page-title::after { width: 80px; }
+        .categories-grid { grid-template-columns: 1fr; }
+        .category-image-circle { width: 150px; height: 150px; }
+    }
+
+    @media (max-width: 400px) {
+        .category-image-circle { width: 130px; height: 130px; }
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="page-title">دسته‌بندی محصولات</h1>
+    <p class="page-description">همه محصولات فروشگاه JOKERPLAYSTATION در دسته‌بندی‌های مختلف</p>
+</div>
+
+<!-- دسته‌بندی‌های اصلی با عکس دایره‌ای -->
+<div class="categories-grid">
+    {% for category in categories %}
+    <div class="category-card" onclick="window.location.href='{{ category.get_absolute_url }}'">
+        <div class="category-image-circle">
+            {% if category.image %}
+            <img src="{{ category.image.url }}" alt="{{ category.name }}">
+            {% else %}
+            <i class="fas fa-folder-open"></i>
+            {% endif %}
+        </div>
+        <h2>{{ category.name }}</h2>
+        <div class="category-type">{{ category.get_type_display }}</div>
+        <div class="category-stats">
+            <div class="stat-item">
+                <div class="stat-value">{{ category.products.count }}</div>
+                <div class="stat-label">محصول</div>
+            </div>
+            {% if category.game_platform != 'none' %}
+            <div class="stat-item">
+                <div class="stat-value">{{ category.get_game_platform_display }}</div>
+                <div class="stat-label">پلتفرم</div>
+            </div>
+            {% endif %}
+        </div>
+        <a href="{{ category.get_absolute_url }}" class="category-link">
+            مشاهده محصولات
+            <i class="fas fa-arrow-left"></i>
+        </a>
+    </div>
+    {% empty %}
+    <p style="grid-column: 1/-1; text-align: center; color: #a0a0b0; padding: 60px;">دسته‌بندی برای نمایش وجود ندارد</p>
+    {% endfor %}
+</div>
+
+<script>
+    // بررسی خطای عکس‌ها
+    document.querySelectorAll('.category-image-circle img').forEach(img => {
+        img.onerror = function() {
+            this.style.display = 'none';
+            var icon = document.createElement('i');
+            icon.className = 'fas fa-folder-open';
+            icon.style.fontSize = '3rem';
+            icon.style.color = 'var(--header-accent)';
+            this.parentElement.appendChild(icon);
+        };
+    });
+</script>
+{% endblock %}

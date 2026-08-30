@@ -1,0 +1,336 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}{{ video.title }} | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block meta_description %}{{ video.description|striptags|truncatechars:160 }}{% endblock %}
+
+{% block meta_keywords %}{{ video.title }}, ویدیو گیمینگ, گیم پلی, تریلر بازی{% endblock %}
+
+{% block og_title %}{{ video.title }} | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block og_description %}{{ video.description|striptags|truncatechars:160 }}{% endblock %}
+
+{% block og_image %}{% if video.thumbnail %}{{ request.scheme }}://{{ request.get_host }}{{ video.thumbnail.url }}{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+    .video-detail-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 30px;
+        padding: 12px 20px;
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50px;
+        font-size: 0.85rem;
+    }
+
+    .breadcrumb a {
+        color: var(--header-accent);
+        text-decoration: none;
+    }
+
+    .breadcrumb span {
+        color: #a0a0b0;
+    }
+
+    .video-player {
+        background: #000000;
+        border-radius: 24px;
+        overflow: hidden;
+        margin-bottom: 30px;
+        position: relative;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .video-player video {
+        width: 100%;
+        display: block;
+    }
+
+    .video-info {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    .video-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 15px;
+        line-height: 1.3;
+    }
+
+    .video-meta {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: #a0a0b0;
+        font-size: 0.85rem;
+        flex-wrap: wrap;
+    }
+
+    .video-meta i {
+        color: var(--header-accent);
+        margin-left: 5px;
+    }
+
+    .video-description {
+        color: #c0d0e0;
+        line-height: 1.8;
+        font-size: 1rem;
+        margin-top: 20px;
+    }
+
+    .share-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .share-title {
+        color: #a0a0b0;
+        font-size: 0.9rem;
+    }
+
+    .share-buttons {
+        display: flex;
+        gap: 12px;
+    }
+
+    .share-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+    }
+
+    .share-btn.telegram {
+        background: #0088cc;
+    }
+    .share-btn.whatsapp {
+        background: #25D366;
+    }
+    .share-btn.twitter {
+        background: #1DA1F2;
+    }
+    .share-btn.facebook {
+        background: #1877F2;
+    }
+    .share-btn:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.1);
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 25px;
+        background: transparent;
+        border: 1px solid var(--header-accent);
+        color: var(--header-accent);
+        text-decoration: none;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .back-btn:hover {
+        background: var(--header-accent);
+        color: #000000;
+        transform: translateY(-2px);
+    }
+
+    .related-videos {
+        margin-top: 50px;
+    }
+
+    .related-title {
+        font-size: 1.5rem;
+        color: #ffffff;
+        margin-bottom: 25px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--header-accent);
+        display: inline-block;
+    }
+
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    .related-card {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+    }
+
+    .related-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--header-accent);
+    }
+
+    .related-card img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+    }
+
+    .related-card h4 {
+        color: #ffffff;
+        font-size: 0.85rem;
+        padding: 15px;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 992px) {
+        .video-title { font-size: 1.5rem; }
+        .related-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+        .video-title { font-size: 1.3rem; }
+        .video-info { padding: 20px; }
+        .related-grid { grid-template-columns: 1fr; }
+        .share-section { flex-direction: column; align-items: flex-start; }
+    }
+</style>
+
+<div class="video-detail-container">
+    <div class="breadcrumb">
+        <a href="{% url 'shop:home' %}">خانه</a>
+        <i class="fas fa-chevron-left" style="color: var(--header-accent); font-size: 0.7rem;"></i>
+        <a href="{% url 'shop:video_list' %}">ویدیوها</a>
+        <i class="fas fa-chevron-left" style="color: var(--header-accent); font-size: 0.7rem;"></i>
+        <span>{{ video.title|truncatechars:30 }}</span>
+    </div>
+
+    <div class="video-player">
+        <video controls autoplay>
+            <source src="{{ video.video_file.url }}" type="video/mp4">
+            مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+        </video>
+    </div>
+
+    <div class="video-info">
+        <h1 class="video-title">{{ video.title }}</h1>
+        
+        <div class="video-meta">
+            <span><i class="fas fa-calendar-alt"></i> {{ video.created_at|date:"d F Y" }}</span>
+            <span><i class="fas fa-clock"></i> {{ video.created_at|date:"H:i" }}</span>
+            {% if video.is_active %}
+            <span><i class="fas fa-check-circle" style="color: #00ff00;"></i> منتشر شده</span>
+            {% endif %}
+        </div>
+
+        {% if video.description %}
+        <div class="video-description">
+            {{ video.description|linebreaks }}
+        </div>
+        {% endif %}
+
+        <div class="share-section">
+            <span class="share-title"><i class="fas fa-share-alt"></i> اشتراک‌گذاری:</span>
+            <div class="share-buttons">
+                <a href="https://t.me/share/url?url={{ request.build_absolute_uri }}&text={{ video.title }}" target="_blank" class="share-btn telegram">
+                    <i class="fab fa-telegram-plane"></i>
+                </a>
+                <a href="https://wa.me/?text={{ video.title }} - {{ request.build_absolute_uri }}" target="_blank" class="share-btn whatsapp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <a href="https://twitter.com/intent/tweet?text={{ video.title }}&url={{ request.build_absolute_uri }}" target="_blank" class="share-btn twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="share-btn facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="back-section" style="margin-top: 20px;">
+        <a href="{% url 'shop:video_list' %}" class="back-btn">
+            <i class="fas fa-arrow-right"></i>
+            بازگشت به لیست ویدیوها
+        </a>
+    </div>
+
+    {% if related_videos %}
+    <div class="related-videos">
+        <h3 class="related-title">ویدیوهای مرتبط</h3>
+        <div class="related-grid">
+            {% for related in related_videos %}
+            <a href="{% url 'shop:video_detail' related.id %}" class="related-card">
+                {% if related.thumbnail %}
+                <img src="{{ related.thumbnail.url }}" alt="{{ related.title }}">
+                {% else %}
+                <div style="height: 120px; background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-video" style="font-size: 2rem; color: #000;"></i>
+                </div>
+                {% endif %}
+                <h4>{{ related.title|truncatechars:45 }}</h4>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // ذخیره زمان پخش ویدیو در localStorage (اختیاری)
+    const video = document.querySelector('video');
+    if (video) {
+        const videoId = '{{ video.id }}';
+        const savedTime = localStorage.getItem(`video_${videoId}_time`);
+        if (savedTime && parseFloat(savedTime) > 5) {
+            video.currentTime = parseFloat(savedTime);
+        }
+        
+        video.addEventListener('timeupdate', function() {
+            localStorage.setItem(`video_${videoId}_time`, video.currentTime);
+        });
+    }
+
+    document.querySelectorAll('.related-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            window.location.href = this.href;
+        });
+    });
+</script>
+{% endblock %}

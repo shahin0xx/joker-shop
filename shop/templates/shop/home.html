@@ -1,0 +1,1058 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}خانه | JOKERPLAYSTATION نیشابور | فروشگاه تخصصی پلی استیشن{% endblock %}
+
+{% block meta_description %}بهترین قیمت بازی‌ها و کنسول‌های پلی استیشن در نیشابور با ضمانت اصالت و تحویل فوری. فروشگاه JOKERPLAYSTATION در نیشابور، خیابان خیام، نبش خیام ۲۲.{% endblock %}
+
+{% block meta_keywords %}پلی استیشن, بازی, کنسول, PS5, PS4, نیشابور, فروشگاه بازی, لوازم جانبی, خرید بازی پلی استیشن{% endblock %}
+
+{% block og_title %}JOKERPLAYSTATION نیشابور | مرکز تخصصی پلی استیشن{% endblock %}
+
+{% block og_description %}بهترین قیمت بازی‌ها و کنسول‌های پلی استیشن در نیشابور با ضمانت اصالت و تحویل فوری. آدرس: نیشابور، خیابان خیام، نبش خیام ۲۲.{% endblock %}
+
+{% block twitter_title %}JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block twitter_description %}بهترین قیمت بازی‌ها و کنسول‌های پلی استیشن در نیشابور{% endblock %}
+
+{% block schema %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "JOKERPLAYSTATION نیشابور",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+    "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ request.scheme }}://{{ request.get_host }}/search/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+    }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --header-accent-rgb: {{ site_settings.header_accent_rgb|default:'0, 255, 255' }};
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .hero-section {
+        position: relative;
+        height: 600px;
+        border-radius: 24px;
+        overflow: hidden;
+        margin-bottom: 80px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .hero-slider {
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+
+    .hero-slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.8s ease;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        padding: 60px;
+    }
+
+    .hero-slide::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, rgba(10, 15, 30, 0.8) 0%, rgba(10, 15, 30, 0.4) 100%);
+    }
+
+    .hero-slide.active {
+        opacity: 1;
+    }
+
+    .hero-content {
+        max-width: 600px;
+        position: relative;
+        z-index: 2;
+        animation: fadeInUp 1s ease-out;
+    }
+
+    .hero-content h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        color: #ffffff;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        line-height: 1.2;
+    }
+
+    .hero-content h1 span {
+        color: var(--header-accent);
+    }
+
+    .hero-content p {
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 30px;
+        font-size: 1.2rem;
+        line-height: 1.8;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .hero-controls {
+        position: absolute;
+        bottom: 30px;
+        right: 30px;
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+    }
+
+    .hero-dot {
+        width: 40px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 2px;
+    }
+
+    .hero-dot.active {
+        background: var(--header-accent);
+        width: 60px;
+    }
+
+    .hero-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        z-index: 10;
+        font-size: 1.2rem;
+    }
+
+    .hero-arrow:hover {
+        background: var(--header-accent);
+        color: #000000;
+        border-color: var(--header-accent);
+    }
+
+    .hero-arrow.prev {
+        right: 30px;
+    }
+
+    .hero-arrow.next {
+        left: 30px;
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .section-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #ffffff;
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background: var(--header-accent);
+        border-radius: 2px;
+    }
+
+    .section-subtitle {
+        color: #a0a0b0;
+        font-size: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 30px;
+        margin-bottom: 80px;
+    }
+
+    .category-card {
+        text-align: center;
+        cursor: pointer;
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .category-card:nth-child(1) { animation-delay: 0.1s; }
+    .category-card:nth-child(2) { animation-delay: 0.2s; }
+    .category-card:nth-child(3) { animation-delay: 0.3s; }
+    .category-card:nth-child(4) { animation-delay: 0.4s; }
+    .category-card:nth-child(5) { animation-delay: 0.5s; }
+    .category-card:nth-child(6) { animation-delay: 0.6s; }
+    .category-card:nth-child(7) { animation-delay: 0.7s; }
+    .category-card:nth-child(8) { animation-delay: 0.8s; }
+
+    .category-image-circle {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 15px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #0a0f1f;
+        border: 3px solid transparent;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .category-card:hover .category-image-circle {
+        border-color: var(--header-accent);
+        transform: scale(1.05);
+        box-shadow: 0 15px 30px rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    .category-image-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .category-card:hover .category-image-circle img {
+        transform: scale(1.1);
+    }
+
+    .category-image-circle i {
+        font-size: 3rem;
+        color: var(--header-accent);
+    }
+
+    .category-card h3 {
+        color: #ffffff;
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+
+    .category-card p {
+        color: #a0a0b0;
+        font-size: 0.9rem;
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 25px;
+        margin-bottom: 80px;
+    }
+
+    .product-card {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .product-card:nth-child(1) { animation-delay: 0.1s; }
+    .product-card:nth-child(2) { animation-delay: 0.2s; }
+    .product-card:nth-child(3) { animation-delay: 0.3s; }
+    .product-card:nth-child(4) { animation-delay: 0.4s; }
+    .product-card:nth-child(5) { animation-delay: 0.5s; }
+    .product-card:nth-child(6) { animation-delay: 0.6s; }
+    .product-card:nth-child(7) { animation-delay: 0.7s; }
+    .product-card:nth-child(8) { animation-delay: 0.8s; }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--header-accent);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .product-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--header-accent);
+        color: #000000;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        z-index: 2;
+    }
+
+    .product-image {
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+        background: #0a0f1f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: transform 0.5s ease;
+        padding: 20px;
+    }
+
+    .product-card:hover .product-image img {
+        transform: scale(1.05);
+    }
+
+    .product-info {
+        padding: 20px;
+    }
+
+    .product-category {
+        color: var(--header-accent);
+        font-size: 0.75rem;
+        margin-bottom: 8px;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .product-info h3 {
+        color: #ffffff;
+        font-size: 1rem;
+        margin-bottom: 10px;
+        font-weight: 600;
+        line-height: 1.5;
+        height: 3rem;
+        overflow: hidden;
+    }
+
+    .product-price {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+
+    .product-price small {
+        color: #a0a0b0;
+        font-size: 0.8rem;
+        font-weight: 400;
+        margin-right: 5px;
+    }
+
+    .product-btn {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background: transparent;
+        border: 1px solid var(--header-accent);
+        color: var(--header-accent);
+        text-decoration: none;
+        text-align: center;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+    }
+
+    .product-btn:hover {
+        background: var(--header-accent);
+        color: #000000;
+    }
+
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+        margin-bottom: 80px;
+    }
+
+    .news-card {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .news-card:nth-child(1) { animation-delay: 0.1s; }
+    .news-card:nth-child(2) { animation-delay: 0.2s; }
+    .news-card:nth-child(3) { animation-delay: 0.3s; }
+    .news-card:nth-child(4) { animation-delay: 0.4s; }
+
+    .news-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--header-accent);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .news-image {
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .news-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .news-card:hover .news-image img {
+        transform: scale(1.05);
+    }
+
+    .news-content {
+        padding: 25px;
+    }
+
+    .news-meta {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        color: #a0a0b0;
+        font-size: 0.8rem;
+    }
+
+    .news-meta i {
+        color: var(--header-accent);
+        margin-left: 5px;
+    }
+
+    .news-content h3 {
+        color: #ffffff;
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+        line-height: 1.5;
+        font-weight: 600;
+    }
+
+    .news-content p {
+        color: #a0a0b0;
+        margin-bottom: 20px;
+        line-height: 1.6;
+        font-size: 0.9rem;
+    }
+
+    .news-link {
+        color: var(--header-accent);
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+
+    .news-link:hover {
+        gap: 12px;
+        color: #ffffff;
+    }
+
+    .videos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 25px;
+        margin-bottom: 50px;
+    }
+
+    .video-card {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .video-card:nth-child(1) { animation-delay: 0.1s; }
+    .video-card:nth-child(2) { animation-delay: 0.2s; }
+    .video-card:nth-child(3) { animation-delay: 0.3s; }
+    .video-card:nth-child(4) { animation-delay: 0.4s; }
+    .video-card:nth-child(5) { animation-delay: 0.5s; }
+    .video-card:nth-child(6) { animation-delay: 0.6s; }
+
+    .video-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--header-accent);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .video-thumbnail {
+        height: 160px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .video-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .video-card:hover .video-thumbnail img {
+        transform: scale(1.05);
+    }
+
+    .video-play {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 50px;
+        height: 50px;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 1.2rem;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .video-card:hover .video-play {
+        opacity: 1;
+    }
+
+    .video-info {
+        padding: 15px;
+    }
+
+    .video-info h3 {
+        color: #ffffff;
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    .video-date {
+        color: #a0a0b0;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .video-date i {
+        color: var(--header-accent);
+    }
+
+    .features-section {
+        background: rgba(20, 25, 40, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 40px;
+        padding: 60px 40px;
+        margin: 80px 0;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 30px;
+    }
+
+    .feature-item {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 20px;
+        background: rgba(var(--header-accent-rgb), 0.1);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: var(--header-accent);
+        transition: all 0.3s ease;
+    }
+
+    .feature-item:hover .feature-icon {
+        background: var(--header-accent);
+        color: #000000;
+        transform: translateY(-5px);
+    }
+
+    .feature-item h3 {
+        color: #ffffff;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .feature-item p {
+        color: #a0a0b0;
+        font-size: 0.85rem;
+        line-height: 1.6;
+    }
+
+    .btn-view-all {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        padding: 12px 30px;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-view-all:hover {
+        border-color: var(--header-accent);
+        color: var(--header-accent);
+        gap: 15px;
+    }
+
+    .address-banner {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 60px;
+        padding: 15px 30px;
+        margin: 30px 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 15px;
+        color: #ffffff;
+        font-size: 0.95rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .address-banner i {
+        color: var(--header-accent);
+        font-size: 1.1rem;
+    }
+
+    .address-banner span {
+        color: #a0a0b0;
+        margin: 0 5px;
+    }
+
+    .address-banner strong {
+        color: var(--header-accent);
+        font-weight: 600;
+    }
+
+    @media (max-width: 1200px) {
+        .hero-content h1 { font-size: 2.5rem; }
+    }
+
+    @media (max-width: 992px) {
+        .hero-section { height: 500px; }
+        .hero-content h1 { font-size: 2.2rem; }
+        .section-title { font-size: 2rem; }
+        .categories-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+        .hero-section { height: 450px; }
+        .hero-slide { padding: 40px; }
+        .hero-content h1 { font-size: 1.8rem; }
+        .hero-arrow { width: 45px; height: 45px; }
+        .section-title { font-size: 1.8rem; }
+        .categories-grid { grid-template-columns: repeat(2, 1fr); }
+        .category-image-circle { width: 130px; height: 130px; }
+        .products-grid { grid-template-columns: repeat(2, 1fr); }
+        .features-section { padding: 40px 20px; }
+    }
+
+    @media (max-width: 576px) {
+        .hero-section { height: 400px; }
+        .hero-content h1 { font-size: 1.5rem; }
+        .section-title { font-size: 1.5rem; }
+        .categories-grid { grid-template-columns: 1fr; }
+        .category-image-circle { width: 150px; height: 150px; }
+        .products-grid { grid-template-columns: 1fr; }
+        .address-banner { 
+            flex-direction: column; 
+            text-align: center; 
+            padding: 15px 20px;
+        }
+    }
+</style>
+
+<div class="address-banner">
+    <i class="fas fa-map-marker-alt"></i>
+    <span>آدرس فروشگاه:</span>
+    <strong>{{ site_settings.address_line1 }}</strong>
+    {% if site_settings.address_line2 %}
+    <span>، {{ site_settings.address_line2 }}</span>
+    {% endif %}
+    <span>، {{ site_settings.address_city }}، {{ site_settings.address_state }}</span>
+    <i class="fas fa-phone-alt"></i>
+    <strong>{{ site_settings.phone1 }}</strong>
+</div>
+
+<section class="hero-section">
+    <div class="hero-slider" id="heroSlider">
+        {% for slide in slider_items %}
+        <div class="hero-slide {% if forloop.first %}active{% endif %}" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('{{ slide.image.url }}');">
+            <div class="hero-content">
+                <h1>به <span>JOKERPLAYSTATION</span> خوش آمدید</h1>
+                <p>بهترین قیمت بازی‌ها و کنسول‌های پلی استیشن در نیشابور با ضمانت اصالت و تحویل فوری</p>
+                <a href="{% url 'shop:category_list' %}" class="btn btn-primary" style="padding: 15px 35px; font-size: 1rem;">
+                    <i class="fas fa-shopping-cart"></i>
+                    خرید کنید
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="hero-slide active" style="background: linear-gradient(135deg, #0a0f1f, #1a1f2f);">
+            <div class="hero-content">
+                <h1>به <span>JOKERPLAYSTATION</span> خوش آمدید</h1>
+                <p>بهترین قیمت بازی‌ها و کنسول‌های پلی استیشن در نیشابور با ضمانت اصالت و تحویل فوری</p>
+                <a href="{% url 'shop:category_list' %}" class="btn btn-primary" style="padding: 15px 35px; font-size: 1rem;">
+                    <i class="fas fa-shopping-cart"></i>
+                    خرید کنید
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if slider_items|length > 1 %}
+    <div class="hero-controls" id="heroDots">
+        {% for slide in slider_items %}
+        <div class="hero-dot {% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}"></div>
+        {% endfor %}
+    </div>
+    
+    <div class="hero-arrow prev" id="heroPrev">
+        <i class="fas fa-chevron-right"></i>
+    </div>
+    <div class="hero-arrow next" id="heroNext">
+        <i class="fas fa-chevron-left"></i>
+    </div>
+    {% endif %}
+</section>
+
+<section style="margin-bottom: 80px;">
+    <div class="section-header">
+        <h2 class="section-title">دسته‌بندی محصولات</h2>
+        <p class="section-subtitle">محصولات خود را بر اساس دسته‌بندی مورد علاقه خود جستجو کنید</p>
+    </div>
+    
+    <div class="categories-grid">
+        {% for category in categories %}
+        <div class="category-card" onclick="window.location.href='{{ category.get_absolute_url }}'">
+            <div class="category-image-circle">
+                {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}">
+                {% else %}
+                <i class="fas fa-folder-open"></i>
+                {% endif %}
+            </div>
+            <h3>{{ category.name }}</h3>
+            <p>{{ category.products.count }} محصول</p>
+        </div>
+        {% empty %}
+        <p style="grid-column: 1/-1; text-align: center; color: #a0a0b0;">دسته‌بندی برای نمایش وجود ندارد</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section style="margin-bottom: 80px;">
+    <div class="section-header">
+        <h2 class="section-title">محصولات ویژه</h2>
+        <p class="section-subtitle">جدیدترین و پرفروش‌ترین محصولات فروشگاه</p>
+    </div>
+    
+    <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card">
+            <div class="product-image">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                <img src="{% static 'images/no-image.jpg' %}" alt="{{ product.name }}">
+                {% endif %}
+                {% if product.is_new %}
+                <span class="product-badge">جدید</span>
+                {% endif %}
+            </div>
+            <div class="product-info">
+                <span class="product-category">{{ product.category.name }}</span>
+                <h3>{{ product.name|truncatechars:40 }}</h3>
+                <div class="product-price">
+                    {{ product.price|floatformat:0 }} <small>تومان</small>
+                </div>
+                <a href="{% url 'shop:product_detail' product.id %}" class="product-btn">
+                    مشاهده محصول
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <p style="grid-column: 1/-1; text-align: center; color: #a0a0b0;">محصولی برای نمایش وجود ندارد</p>
+        {% endfor %}
+    </div>
+    
+    <div style="text-align: center;">
+        <a href="{% url 'shop:category_list' %}" class="btn-view-all">
+            <span>همه محصولات</span>
+            <i class="fas fa-arrow-left"></i>
+        </a>
+    </div>
+</section>
+
+<section class="features-section">
+    <div class="features-grid">
+        <div class="feature-item">
+            <div class="feature-icon">
+                <i class="fas fa-truck"></i>
+            </div>
+            <h3>ارسال سریع</h3>
+            <p>تحویل در کمتر از ۲۴ ساعت در نیشابور</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>ضمانت اصالت</h3>
+            <p>تمامی محصولات اصل هستند</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon">
+                <i class="fas fa-headset"></i>
+            </div>
+            <h3>پشتیبانی ۲۴/۷</h3>
+            <p>پاسخگویی همیشگی</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <h3>پرداخت امن</h3>
+            <p>با درگاه‌های معتبر</p>
+        </div>
+    </div>
+</section>
+
+<section style="margin-bottom: 80px;">
+    <div class="section-header">
+        <h2 class="section-title">آخرین اخبار</h2>
+        <p class="section-subtitle">اخبار و مقالات دنیای گیمینگ</p>
+    </div>
+    
+    <div class="news-grid">
+        {% for item in news %}
+        <div class="news-card">
+            <div class="news-image">
+                {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.title }}">
+                {% else %}
+                <img src="{% static 'images/news-placeholder.jpg' %}" alt="{{ item.title }}">
+                {% endif %}
+            </div>
+            <div class="news-content">
+                <div class="news-meta">
+                    <span><i class="fas fa-calendar-alt"></i> {{ item.created_at|date:"Y/m/d" }}</span>
+                    <span><i class="fas fa-eye"></i> {{ item.views }}</span>
+                </div>
+                <h3>{{ item.title|truncatechars:50 }}</h3>
+                <p>{{ item.content|striptags|truncatechars:100 }}</p>
+                <a href="{% url 'shop:news_detail' item.slug %}" class="news-link">
+                    ادامه مطلب
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <p style="grid-column: 1/-1; text-align: center; color: #a0a0b0;">خبری برای نمایش وجود ندارد</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section style="margin-bottom: 50px;">
+    <div class="section-header">
+        <h2 class="section-title">ویدیوهای گیمینگ</h2>
+        <p class="section-subtitle">جدیدترین ویدیوهای بازی‌ها</p>
+    </div>
+    
+    <div class="videos-grid">
+        {% for video in videos %}
+        <div class="video-card" onclick="window.location.href='{% url 'shop:video_detail' video.id %}'">
+            <div class="video-thumbnail">
+                {% if video.thumbnail %}
+                <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}">
+                {% else %}
+                <img src="{% static 'images/video-placeholder.jpg' %}" alt="{{ video.title }}">
+                {% endif %}
+                <div class="video-play">
+                    <i class="fas fa-play"></i>
+                </div>
+            </div>
+            <div class="video-info">
+                <h3>{{ video.title|truncatechars:40 }}</h3>
+                <div class="video-date">
+                    <i class="fas fa-calendar-alt"></i>
+                    {{ video.created_at|date:"Y/m/d" }}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p style="grid-column: 1/-1; text-align: center; color: #a0a0b0;">ویدیویی برای نمایش وجود ندارد</p>
+        {% endfor %}
+    </div>
+    
+    <div style="text-align: center;">
+        <a href="{% url 'shop:video_list' %}" class="btn-view-all">
+            <span>همه ویدیوها</span>
+            <i class="fas fa-arrow-left"></i>
+        </a>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slides = document.querySelectorAll('.hero-slide');
+        const dots = document.querySelectorAll('.hero-dot');
+        const prevBtn = document.getElementById('heroPrev');
+        const nextBtn = document.getElementById('heroNext');
+        
+        if (slides.length > 1) {
+            let currentSlide = 0;
+            let slideInterval;
+            
+            function showSlide(index) {
+                slides.forEach(slide => slide.classList.remove('active'));
+                dots.forEach(dot => dot.classList.remove('active'));
+                
+                slides[index].classList.add('active');
+                dots[index].classList.add('active');
+                currentSlide = index;
+            }
+            
+            function nextSlide() {
+                let next = (currentSlide + 1) % slides.length;
+                showSlide(next);
+            }
+            
+            function prevSlide() {
+                let prev = (currentSlide - 1 + slides.length) % slides.length;
+                showSlide(prev);
+            }
+            
+            function startAutoSlide() {
+                slideInterval = setInterval(nextSlide, 6000);
+            }
+            
+            function stopAutoSlide() {
+                if (slideInterval) {
+                    clearInterval(slideInterval);
+                }
+            }
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    stopAutoSlide();
+                    nextSlide();
+                    startAutoSlide();
+                });
+            }
+            
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function() {
+                    stopAutoSlide();
+                    prevSlide();
+                    startAutoSlide();
+                });
+            }
+            
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', function() {
+                    stopAutoSlide();
+                    showSlide(index);
+                    startAutoSlide();
+                });
+            });
+            
+            const sliderContainer = document.querySelector('.hero-slider');
+            if (sliderContainer) {
+                sliderContainer.addEventListener('mouseenter', stopAutoSlide);
+                sliderContainer.addEventListener('mouseleave', startAutoSlide);
+            }
+            
+            startAutoSlide();
+        }
+    });
+
+    document.querySelectorAll('.category-image-circle img, .product-image img, .news-image img, .video-thumbnail img').forEach(img => {
+        img.onerror = function() {
+            if (this.closest('.category-image-circle')) {
+                this.style.display = 'none';
+                this.parentElement.innerHTML = '<i class="fas fa-folder-open" style="font-size: 3rem; color: var(--header-accent);"></i>';
+            } else {
+                this.src = "{% static 'images/no-image.jpg' %}";
+            }
+        };
+    });
+</script>
+{% endblock %}

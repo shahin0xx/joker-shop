@@ -1,0 +1,566 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}تکمیل سفارش | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block content %}
+<style>
+    .checkout-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .checkout-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .checkout-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 10px;
+    }
+
+    .checkout-title span {
+        color: var(--header-accent);
+    }
+
+    .checkout-content {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 30px;
+    }
+
+    .checkout-form {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 30px;
+    }
+
+    .form-section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        color: #ffffff;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        color: var(--header-accent);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        color: #a0a0b0;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--header-accent);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .payment-info {
+        background: rgba(var(--header-accent-rgb), 0.05);
+        border: 1px solid var(--header-accent);
+        border-radius: 16px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .payment-info h4 {
+        color: var(--header-accent);
+        margin-bottom: 15px;
+    }
+
+    .payment-detail {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        margin-bottom: 10px;
+    }
+
+    .payment-detail i {
+        color: var(--header-accent);
+        font-size: 1.5rem;
+    }
+
+    .payment-detail .detail {
+        flex: 1;
+    }
+
+    .payment-detail .label {
+        color: #a0a0b0;
+        font-size: 0.8rem;
+    }
+
+    .payment-detail .value {
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 600;
+        direction: ltr;
+        text-align: left;
+        font-family: monospace;
+    }
+
+    .file-upload {
+        position: relative;
+        margin-top: 10px;
+    }
+
+    .file-upload input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .file-upload-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 15px;
+        background: rgba(var(--header-accent-rgb), 0.1);
+        border: 2px dashed var(--header-accent);
+        border-radius: 12px;
+        color: var(--header-accent);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .file-upload-label:hover {
+        background: rgba(var(--header-accent-rgb), 0.2);
+    }
+
+    .file-name {
+        margin-top: 10px;
+        color: #a0a0b0;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    .discount-section {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .discount-input {
+        flex: 1;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #ffffff;
+    }
+
+    .discount-btn {
+        padding: 12px 25px;
+        background: var(--button-secondary-bg);
+        color: var(--button-secondary-text);
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .discount-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px var(--button-secondary-bg);
+    }
+
+    .order-summary {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 25px;
+        position: sticky;
+        top: 100px;
+    }
+
+    .summary-items {
+        margin: 20px 0;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+
+    .item-info {
+        flex: 1;
+    }
+
+    .item-name {
+        color: #ffffff;
+        font-size: 0.9rem;
+        margin-bottom: 3px;
+    }
+
+    .item-quantity {
+        color: #a0a0b0;
+        font-size: 0.8rem;
+    }
+
+    .item-price {
+        color: var(--header-accent);
+        font-weight: 600;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        color: #a0a0b0;
+    }
+
+    .summary-row.total {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .summary-row.total span:last-child {
+        color: var(--header-accent);
+    }
+
+    .discount-amount {
+        color: #00ff00;
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 15px;
+        background: var(--button-primary-bg);
+        color: var(--button-primary-text);
+        border: none;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 20px;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px var(--button-primary-bg);
+    }
+
+    .submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .terms-check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 20px 0;
+        color: #a0a0b0;
+    }
+
+    .terms-check input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .terms-check a {
+        color: var(--header-accent);
+        text-decoration: none;
+    }
+
+    @media (max-width: 992px) {
+        .checkout-content { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+        .form-row { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="checkout-container">
+    <div class="checkout-header">
+        <h1 class="checkout-title">تکمیل <span>سفارش</span></h1>
+    </div>
+
+    {% if cart and cart.items.all %}
+    <div class="checkout-content">
+        <form method="post" enctype="multipart/form-data" class="checkout-form" id="checkoutForm">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-user"></i>
+                    اطلاعات گیرنده
+                </h3>
+                
+                <div class="form-group">
+                    <label>نام و نام خانوادگی *</label>
+                    <input type="text" name="full_name" class="form-control" required value="{{ user.profile.full_name|default:'' }}">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>شماره تماس *</label>
+                        <input type="text" name="phone" class="form-control" required value="{{ user.profile.phone|default:'' }}" placeholder="۰۹۱۲۳۴۵۶۷۸۹">
+                    </div>
+                    <div class="form-group">
+                        <label>کد پستی *</label>
+                        <input type="text" name="postal_code" class="form-control" required value="{{ user.profile.postal_code|default:'' }}" placeholder="۱۰ رقم">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>آدرس کامل *</label>
+                    <textarea name="address" class="form-control" required rows="3">{{ user.profile.address|default:'' }}</textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-ticket-alt"></i>
+                    کد تخفیف
+                </h3>
+                
+                <div class="discount-section">
+                    <input type="text" name="discount_code" class="discount-input" placeholder="کد تخفیف خود را وارد کنید" id="discountInput">
+                    <button type="button" class="discount-btn" id="applyDiscount">اعمال</button>
+                </div>
+                <div id="discountMessage" style="color: #00ff00; font-size: 0.9rem;"></div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-credit-card"></i>
+                    اطلاعات پرداخت
+                </h3>
+
+                <div class="payment-info" id="paymentInfo">
+                    <h4>روش پرداخت: {{ payment_method|default:'کارت به کارت' }}</h4>
+                    {% if payment_method == 'shaba' %}
+                    <div class="payment-detail">
+                        <i class="fas fa-university"></i>
+                        <div class="detail">
+                            <div class="label">شماره شبا</div>
+                            <div class="value">{{ site_settings.shaba_number }}</div>
+                        </div>
+                    </div>
+                    <div class="payment-detail">
+                        <i class="fas fa-building"></i>
+                        <div class="detail">
+                            <div class="label">نام بانک</div>
+                            <div class="value">{{ site_settings.bank_name }}</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="payment-detail">
+                        <i class="fas fa-credit-card"></i>
+                        <div class="detail">
+                            <div class="label">شماره کارت</div>
+                            <div class="value">{{ site_settings.card_number }}</div>
+                        </div>
+                    </div>
+                    <div class="payment-detail">
+                        <i class="fas fa-user"></i>
+                        <div class="detail">
+                            <div class="label">به نام</div>
+                            <div class="value">{{ site_settings.card_holder_name }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>تصویر رسید پرداخت *</label>
+                    <div class="file-upload">
+                        <input type="file" name="receipt_image" accept="image/*" required id="receiptFile">
+                        <div class="file-upload-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            انتخاب فایل
+                        </div>
+                    </div>
+                    <div class="file-name" id="fileName">فایلی انتخاب نشده است</div>
+                </div>
+            </div>
+
+            <div class="terms-check">
+                <input type="checkbox" name="agree_terms" id="agreeTerms" required>
+                <label for="agreeTerms">
+                    <a href="{% url 'shop:terms' %}" target="_blank">قوانین و مقررات</a> را مطالعه کرده و می‌پذیرم
+                </label>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                <i class="fas fa-check-circle"></i>
+                ثبت سفارش
+            </button>
+        </form>
+
+        <div class="order-summary">
+            <h3 class="section-title">خلاصه سفارش</h3>
+            
+            <div class="summary-items">
+                {% for item in cart.items.all %}
+                <div class="summary-item">
+                    <div class="item-info">
+                        <div class="item-name">{{ item.product.name|truncatechars:20 }}</div>
+                        <div class="item-quantity">{{ item.quantity }} عدد</div>
+                    </div>
+                    <div class="item-price">{{ item.total_price|floatformat:0 }} تومان</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="summary-row">
+                <span>جمع کل</span>
+                <span id="totalAmount">{{ cart.total_price|floatformat:0 }} تومان</span>
+            </div>
+            
+            <div class="summary-row" id="discountRow" style="display: none;">
+                <span>تخفیف</span>
+                <span class="discount-amount" id="discountAmount">0 تومان</span>
+            </div>
+
+            <div class="summary-row total">
+                <span>مبلغ قابل پرداخت</span>
+                <span id="finalAmount">{{ cart.total_price|floatformat:0 }} تومان</span>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="cart-empty">
+        <div class="cart-empty-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h2>سبد خرید شما خالی است</h2>
+        <p>برای ثبت سفارش باید محصولی به سبد خرید اضافه کنید</p>
+        <a href="{% url 'shop:category_list' %}" class="btn">مشاهده محصولات</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // نمایش نام فایل انتخاب شده
+    document.getElementById('receiptFile')?.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            document.getElementById('fileName').textContent = this.files[0].name;
+        }
+    });
+
+    // فعال/غیرفعال کردن دکمه ثبت سفارش بر اساس تیک قوانین
+    document.getElementById('agreeTerms')?.addEventListener('change', function() {
+        document.getElementById('submitBtn').disabled = !this.checked;
+    });
+
+    // اعمال کد تخفیف
+    document.getElementById('applyDiscount')?.addEventListener('click', function() {
+        const code = document.getElementById('discountInput').value;
+        const total = {{ cart.total_price }};
+        
+        if (!code) {
+            document.getElementById('discountMessage').style.color = '#ff4444';
+            document.getElementById('discountMessage').textContent = 'لطفا کد تخفیف را وارد کنید';
+            return;
+        }
+
+        fetch('{% url 'shop:validate_discount' %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ code: code })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                let discountAmount = 0;
+                if (data.discount_type === 'percentage') {
+                    discountAmount = (total * data.amount) / 100;
+                } else {
+                    discountAmount = data.amount;
+                }
+                
+                const finalAmount = total - discountAmount;
+                
+                document.getElementById('discountRow').style.display = 'flex';
+                document.getElementById('discountAmount').textContent = discountAmount.toLocaleString() + ' تومان';
+                document.getElementById('finalAmount').textContent = finalAmount.toLocaleString() + ' تومان';
+                document.getElementById('discountMessage').style.color = '#00ff00';
+                document.getElementById('discountMessage').textContent = 'کد تخفیف با موفقیت اعمال شد';
+            } else {
+                document.getElementById('discountMessage').style.color = '#ff4444';
+                document.getElementById('discountMessage').textContent = data.message;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('discountMessage').style.color = '#ff4444';
+            document.getElementById('discountMessage').textContent = 'خطا در ارتباط با سرور';
+        });
+    });
+</script>
+{% endblock %}

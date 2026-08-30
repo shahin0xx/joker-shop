@@ -1,0 +1,372 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}{{ news.title }} | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block meta_description %}{{ news.content|striptags|truncatechars:160 }}{% endblock %}
+
+{% block meta_keywords %}{{ news.title }}, اخبار گیمینگ, بازی, پلی استیشن{% endblock %}
+
+{% block og_title %}{{ news.title }} | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block og_description %}{{ news.content|striptags|truncatechars:160 }}{% endblock %}
+
+{% block og_image %}{% if news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+    .news-detail-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 30px;
+        padding: 12px 20px;
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50px;
+        font-size: 0.85rem;
+    }
+
+    .breadcrumb a {
+        color: var(--header-accent);
+        text-decoration: none;
+    }
+
+    .breadcrumb span {
+        color: #a0a0b0;
+    }
+
+    .news-header {
+        margin-bottom: 30px;
+    }
+
+    .news-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 15px;
+        line-height: 1.3;
+    }
+
+    .news-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 15px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 30px;
+    }
+
+    .meta-info {
+        display: flex;
+        gap: 20px;
+        color: #a0a0b0;
+        font-size: 0.85rem;
+    }
+
+    .meta-info i {
+        color: var(--header-accent);
+        margin-left: 5px;
+    }
+
+    .share-buttons {
+        display: flex;
+        gap: 12px;
+    }
+
+    .share-btn {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+    .share-btn.telegram {
+        background: #0088cc;
+    }
+    .share-btn.whatsapp {
+        background: #25D366;
+    }
+    .share-btn.twitter {
+        background: #1DA1F2;
+    }
+    .share-btn:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.1);
+    }
+
+    .news-image {
+        margin-bottom: 30px;
+        border-radius: 24px;
+        overflow: hidden;
+        background: #0a0f1f;
+    }
+
+    .news-image img {
+        width: 100%;
+        max-height: 500px;
+        object-fit: cover;
+    }
+
+    .news-content {
+        background: rgba(20, 25, 40, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 40px;
+        margin-bottom: 40px;
+    }
+
+    .news-content p {
+        color: #c0d0e0;
+        line-height: 1.9;
+        font-size: 1rem;
+        margin-bottom: 20px;
+        text-align: justify;
+    }
+
+    .news-content h2,
+    .news-content h3 {
+        color: #ffffff;
+        margin: 30px 0 15px;
+    }
+
+    .news-content h2 {
+        font-size: 1.5rem;
+        border-right: 3px solid var(--header-accent);
+        padding-right: 15px;
+    }
+
+    .news-content h3 {
+        font-size: 1.2rem;
+    }
+
+    .news-content ul,
+    .news-content ol {
+        margin: 15px 0;
+        padding-right: 20px;
+        color: #c0d0e0;
+    }
+
+    .news-content li {
+        margin-bottom: 8px;
+    }
+
+    .news-content img {
+        max-width: 100%;
+        border-radius: 16px;
+        margin: 20px 0;
+    }
+
+    .news-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 25px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 20px;
+    }
+
+    .tags {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .tag {
+        padding: 5px 15px;
+        background: rgba(var(--header-accent-rgb), 0.1);
+        border: 1px solid rgba(var(--header-accent-rgb), 0.3);
+        border-radius: 20px;
+        color: var(--header-accent);
+        font-size: 0.75rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .tag:hover {
+        background: var(--header-accent);
+        color: #000000;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 25px;
+        background: transparent;
+        border: 1px solid var(--header-accent);
+        color: var(--header-accent);
+        text-decoration: none;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .back-btn:hover {
+        background: var(--header-accent);
+        color: #000000;
+        transform: translateY(-2px);
+    }
+
+    .related-news {
+        margin-top: 50px;
+    }
+
+    .related-title {
+        font-size: 1.5rem;
+        color: #ffffff;
+        margin-bottom: 25px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--header-accent);
+        display: inline-block;
+    }
+
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    .related-card {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+    }
+
+    .related-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--header-accent);
+    }
+
+    .related-card img {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+    }
+
+    .related-card h4 {
+        color: #ffffff;
+        font-size: 0.9rem;
+        padding: 15px;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 992px) {
+        .news-title { font-size: 1.8rem; }
+        .news-content { padding: 30px; }
+        .related-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+        .news-title { font-size: 1.5rem; }
+        .news-meta { flex-direction: column; align-items: flex-start; }
+        .news-content { padding: 20px; }
+        .related-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="news-detail-container">
+    <div class="breadcrumb">
+        <a href="{% url 'shop:home' %}">خانه</a>
+        <i class="fas fa-chevron-left" style="color: var(--header-accent); font-size: 0.7rem;"></i>
+        <a href="{% url 'shop:news_list' %}">اخبار</a>
+        <i class="fas fa-chevron-left" style="color: var(--header-accent); font-size: 0.7rem;"></i>
+        <span>{{ news.title|truncatechars:30 }}</span>
+    </div>
+
+    <div class="news-header">
+        <h1 class="news-title">{{ news.title }}</h1>
+        
+        <div class="news-meta">
+            <div class="meta-info">
+                <span><i class="fas fa-calendar-alt"></i> {{ news.created_at|date:"Y/m/d - H:i" }}</span>
+                <span><i class="fas fa-eye"></i> {{ news.views }} بازدید</span>
+            </div>
+            <div class="share-buttons">
+                <a href="https://t.me/share/url?url={{ request.build_absolute_uri }}&text={{ news.title }}" target="_blank" class="share-btn telegram">
+                    <i class="fab fa-telegram-plane"></i>
+                </a>
+                <a href="https://wa.me/?text={{ news.title }} - {{ request.build_absolute_uri }}" target="_blank" class="share-btn whatsapp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <a href="https://twitter.com/intent/tweet?text={{ news.title }}&url={{ request.build_absolute_uri }}" target="_blank" class="share-btn twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if news.image %}
+    <div class="news-image">
+        <img src="{{ news.image.url }}" alt="{{ news.title }}">
+    </div>
+    {% endif %}
+
+    <div class="news-content">
+        {{ news.content|safe|linebreaks }}
+    </div>
+
+    <div class="news-footer">
+        <a href="{% url 'shop:news_list' %}" class="back-btn">
+            <i class="fas fa-arrow-right"></i>
+            بازگشت به لیست اخبار
+        </a>
+    </div>
+
+    {% if related_news %}
+    <div class="related-news">
+        <h3 class="related-title">اخبار مرتبط</h3>
+        <div class="related-grid">
+            {% for related in related_news %}
+            <a href="{% url 'shop:news_detail' related.slug %}" class="related-card">
+                {% if related.image %}
+                <img src="{{ related.image.url }}" alt="{{ related.title }}">
+                {% else %}
+                <div style="height: 140px; background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-newspaper" style="font-size: 2rem; color: #000;"></i>
+                </div>
+                {% endif %}
+                <h4>{{ related.title|truncatechars:50 }}</h4>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.querySelectorAll('.related-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'A') {
+                window.location.href = this.href;
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دستیار هوشمند جذاب</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .app-container { display: flex; height: 100vh; }
+        .sidebar {
+            width: 280px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h2 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-avatar {
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .quick-actions { padding: 20px; flex: 1; overflow-y: auto; }
+        .quick-actions h3 { font-size: 14px; opacity: 0.7; margin-bottom: 15px; }
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .action-item:hover { background: rgba(255,255,255,0.1); transform: translateX(-5px); }
+        .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .back-to-admin {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+        }
+        .chat-area { flex: 1; display: flex; flex-direction: column; }
+        .chat-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(74,222,128,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        .icon-btn {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .message-wrapper { display: flex; gap: 15px; animation: slideIn 0.3s; }
+        @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .message-wrapper.user { flex-direction: row-reverse; }
+        .message-avatar {
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .message-wrapper.user .message-avatar { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .message-wrapper.assistant .message-avatar { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .message-content { max-width: 70%; }
+        .message-bubble {
+            padding: 15px 20px;
+            border-radius: 20px;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        .message-wrapper.user .message-bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-bottom-left-radius: 5px;
+        }
+        .message-wrapper.assistant .message-bubble {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-bottom-right-radius: 5px;
+        }
+        .message-time { font-size: 11px; opacity: 0.6; margin-top: 5px; }
+        .message-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .action-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .action-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            width: fit-content;
+        }
+        .typing-dot { width: 8px; height: 8px; border-radius: 50%; background: white; animation: typing 1.4s infinite; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%,60%,100%{transform:translateY(0);opacity:0.5} 30%{transform:translateY(-10px);opacity:1} }
+        .chat-input-area { padding: 20px 30px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); }
+        .input-wrapper {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            border-radius: 30px;
+            padding: 8px 8px 8px 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px 0;
+            color: white;
+            font-size: 15px;
+            outline: none;
+            resize: none;
+        }
+        .chat-input::placeholder { color: rgba(255,255,255,0.5); }
+        .send-btn {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+        }
+        .send-btn:disabled { opacity: 0.5; }
+        #imageInput { display: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2><span>🤖</span>دستیار جذاب</h2>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">{{ user.username.0|upper }}</div>
+                <div class="user-details">
+                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                    <span>مدیر سیستم</span>
+                </div>
+            </div>
+            <div class="quick-actions">
+                <h3>⚡ عملیات سریع</h3>
+                <div id="quickActionsList"></div>
+            </div>
+            <div class="sidebar-footer">
+                <a href="{% url 'admin:index' %}" class="back-to-admin">
+                    <span>←</span>
+                    <span>بازگشت به پنل ادمین</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="chat-area">
+            <div class="chat-header">
+                <h1><span>💬</span>گفتگو با دستیار هوشمند</h1>
+                <div class="chat-actions">
+                    <div class="status-badge">
+                        <span class="status-dot"></span>
+                        <span>آنلاین</span>
+                    </div>
+                    <button class="icon-btn" id="clearChatBtn" title="شروع گفتگوی جدید">🔄</button>
+                </div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <div class="message-wrapper assistant">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            در حال بارگذاری...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-area">
+                <div class="input-wrapper">
+                    <input type="file" id="imageInput" accept="image/*">
+                    <button class="icon-btn" id="uploadImageBtn" title="آپلود عکس" type="button" onclick="document.getElementById('imageInput').click()">📎</button>
+                    <textarea class="chat-input" id="chatInput" placeholder="پیام خود را بنویسید..." rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn">📤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const CHAT_API_URL = '{% url "ai_assistant:chat_api" %}';
+        const INIT_SESSION_URL = '{% url "ai_assistant:init_session" %}';
+        const CLEAR_HISTORY_URL = '{% url "ai_assistant:clear_history" %}';
+        const QUICK_ACTIONS_URL = '{% url "ai_assistant:quick_actions" %}';
+        
+        let sessionId = '{{ session_id }}';
+        let isProcessing = false;
+        
+        const messagesContainer = document.getElementById('messagesContainer');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const imageInput = document.getElementById('imageInput');
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        function formatTime() {
+            return new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function clearMessages() {
+            messagesContainer.innerHTML = '';
+        }
+        
+        function addMessage(role, text, actions = []) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${role}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = role === 'user' ? '👤' : '🤖';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.innerHTML = text.replace(/\n/g, '<br>');
+            
+            if (actions && actions.length > 0) {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'message-actions';
+                actions.forEach(action => {
+                    const btn = document.createElement('button');
+                    btn.className = 'action-btn';
+                    btn.textContent = action.text;
+                    btn.onclick = () => sendMessage(action.message || action.text);
+                    actionsDiv.appendChild(btn);
+                });
+                bubble.appendChild(actionsDiv);
+            }
+            
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = formatTime();
+            
+            contentDiv.appendChild(bubble);
+            contentDiv.appendChild(time);
+            wrapper.appendChild(avatar);
+            wrapper.appendChild(contentDiv);
+            
+            messagesContainer.appendChild(wrapper);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function showTyping() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper assistant';
+            wrapper.id = 'typing-indicator';
+            wrapper.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(wrapper);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function hideTyping() {
+            const typing = document.getElementById('typing-indicator');
+            if (typing) typing.remove();
+        }
+        
+        async function sendMessage(message) {
+            if (isProcessing || !message.trim()) return;
+            
+            isProcessing = true;
+            sendBtn.disabled = true;
+            
+            addMessage('user', message);
+            chatInput.value = '';
+            
+            showTyping();
+            
+            try {
+                const response = await fetch(CHAT_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ message, session_id: sessionId })
+                });
+                
+                const data = await response.json();
+                hideTyping();
+                
+                if (data.success) {
+                    addMessage('assistant', data.response.text, data.response.actions);
+                    sessionId = data.session_id;
+                } else {
+                    addMessage('assistant', '❌ خطا: ' + (data.error || 'مشکل در ارتباط'));
+                }
+            } catch (error) {
+                hideTyping();
+                addMessage('assistant', '❌ خطا در ارتباط با سرور');
+            }
+            
+            isProcessing = false;
+            sendBtn.disabled = false;
+            chatInput.focus();
+        }
+        
+        async function uploadImage(file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                showTyping();
+                try {
+                    const response = await fetch(CHAT_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            message: '',
+                            session_id: sessionId,
+                            image: e.target.result
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    hideTyping();
+                    
+                    if (data.success) {
+                        addMessage('user', '📸 [عکس ارسال شد]');
+                        addMessage('assistant', data.response.text, data.response.actions);
+                    }
+                } catch (error) {
+                    hideTyping();
+                    addMessage('assistant', '❌ خطا در آپلود عکس');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        async function initSession() {
+            try {
+                const response = await fetch(INIT_SESSION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    clearMessages();
+                    addMessage('assistant', data.response.text, data.response.actions);
+                    sessionId = data.session_id;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        async function loadQuickActions() {
+            try {
+                const response = await fetch(QUICK_ACTIONS_URL);
+                const data = await response.json();
+                if (data.success) {
+                    const list = document.getElementById('quickActionsList');
+                    data.actions.forEach(action => {
+                        const item = document.createElement('div');
+                        item.className = 'action-item';
+                        item.innerHTML = `<span>${action.text.split(' ')[0]}</span><span>${action.text.substring(2)}</span>`;
+                        item.onclick = () => sendMessage(action.message);
+                        list.appendChild(item);
+                    });
+                }
+            } catch (error) {}
+        }
+        
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage(chatInput.value);
+            }
+        });
+        
+        sendBtn.addEventListener('click', () => sendMessage(chatInput.value));
+        
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                uploadImage(e.target.files[0]);
+                imageInput.value = '';
+            }
+        });
+        
+        document.getElementById('clearChatBtn').addEventListener('click', async () => {
+            if (confirm('شروع گفتگوی جدید؟')) {
+                await fetch(CLEAR_HISTORY_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+                initSession();
+            }
+        });
+        
+        // Start
+        initSession();
+        loadQuickActions();
+    </script>
+</body>
+</html>

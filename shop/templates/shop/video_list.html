@@ -1,0 +1,363 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}ویدیوهای گیمینگ | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block meta_description %}جدیدترین ویدیوهای بازی‌های پلی استیشن، گیم پلی، تریلرها و محتوای اختصاصی گیمینگ از JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block meta_keywords %}ویدیو گیمینگ, گیم پلی, تریلر بازی, ویدیو پلی استیشن, ویدیو بازی, محتوای گیمینگ{% endblock %}
+
+{% block content %}
+<style>
+    .videos-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .videos-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 15px;
+        position: relative;
+        display: inline-block;
+    }
+
+    .videos-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 3px;
+        background: var(--header-accent);
+        border-radius: 2px;
+    }
+
+    .videos-subtitle {
+        color: #a0a0b0;
+        font-size: 1rem;
+        margin-top: 20px;
+    }
+
+    .videos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 30px;
+        margin-bottom: 50px;
+    }
+
+    .video-card {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .video-card:nth-child(1) { animation-delay: 0.1s; }
+    .video-card:nth-child(2) { animation-delay: 0.2s; }
+    .video-card:nth-child(3) { animation-delay: 0.3s; }
+    .video-card:nth-child(4) { animation-delay: 0.4s; }
+    .video-card:nth-child(5) { animation-delay: 0.5s; }
+    .video-card:nth-child(6) { animation-delay: 0.6s; }
+    .video-card:nth-child(7) { animation-delay: 0.7s; }
+    .video-card:nth-child(8) { animation-delay: 0.8s; }
+    .video-card:nth-child(9) { animation-delay: 0.9s; }
+    .video-card:nth-child(10) { animation-delay: 1s; }
+    .video-card:nth-child(11) { animation-delay: 1.1s; }
+    .video-card:nth-child(12) { animation-delay: 1.2s; }
+
+    .video-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--header-accent);
+        box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+    }
+
+    .video-thumbnail {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+        background: #0a0f1f;
+    }
+
+    .video-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .video-card:hover .video-thumbnail img {
+        transform: scale(1.08);
+    }
+
+    .play-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .video-card:hover .play-overlay {
+        opacity: 1;
+    }
+
+    .play-btn {
+        width: 60px;
+        height: 60px;
+        background: var(--header-accent);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #000000;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 20px var(--header-accent);
+    }
+
+    .play-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .duration {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 3px 8px;
+        border-radius: 8px;
+        color: #ffffff;
+        font-size: 0.7rem;
+        font-family: monospace;
+    }
+
+    .video-info {
+        padding: 20px;
+    }
+
+    .video-card h3 {
+        color: #ffffff;
+        font-size: 1rem;
+        margin-bottom: 10px;
+        line-height: 1.5;
+        font-weight: 600;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .video-description {
+        color: #a0a0b0;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        margin-bottom: 15px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .video-date {
+        color: #a0a0b0;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .video-date i {
+        color: var(--header-accent);
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 40px;
+        flex-wrap: wrap;
+    }
+
+    .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 45px;
+        height: 45px;
+        padding: 0 12px;
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #a0a0b0;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .page-link:hover,
+    .page-link.active {
+        border-color: var(--header-accent);
+        color: var(--header-accent);
+        background: rgba(var(--header-accent-rgb), 0.1);
+        transform: translateY(-2px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        background: rgba(20, 25, 40, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: var(--header-accent);
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        color: #ffffff;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #a0a0b0;
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 992px) {
+        .videos-grid { grid-template-columns: repeat(2, 1fr); }
+        .videos-title { font-size: 2rem; }
+    }
+
+    @media (max-width: 768px) {
+        .videos-grid { grid-template-columns: 1fr; }
+        .video-thumbnail { height: 180px; }
+        .video-info { padding: 15px; }
+    }
+
+    @media (max-width: 576px) {
+        .videos-title { font-size: 1.8rem; }
+        .page-link { min-width: 40px; height: 40px; }
+    }
+</style>
+
+<div class="videos-container">
+    <div class="videos-header">
+        <h1 class="videos-title">ویدیوهای گیمینگ</h1>
+        <p class="videos-subtitle">جدیدترین گیم پلی‌ها، تریلرها و محتوای اختصاصی</p>
+    </div>
+
+    {% if videos %}
+    <div class="videos-grid">
+        {% for video in videos %}
+        <div class="video-card" onclick="window.location.href='{% url 'shop:video_detail' video.id %}'">
+            <div class="video-thumbnail">
+                {% if video.thumbnail %}
+                <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}">
+                {% else %}
+                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-video" style="font-size: 3rem; color: #000;"></i>
+                </div>
+                {% endif %}
+                <div class="play-overlay">
+                    <div class="play-btn">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+                <div class="duration">
+                    <i class="fas fa-clock"></i> {{ video.created_at|date:"Y/m/d" }}
+                </div>
+            </div>
+            <div class="video-info">
+                <h3>{{ video.title|truncatechars:55 }}</h3>
+                {% if video.description %}
+                <p class="video-description">{{ video.description|striptags|truncatechars:80 }}</p>
+                {% endif %}
+                <div class="video-date">
+                    <i class="fas fa-calendar-alt"></i>
+                    {{ video.created_at|date:"d F Y" }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="page-link">
+            <i class="fas fa-chevron-right"></i>
+        </a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="page-link active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="page-link">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-video"></i>
+        </div>
+        <h3>ویدیویی برای نمایش وجود ندارد</h3>
+        <p>به زودی ویدیوهای جدید به سایت اضافه خواهد شد</p>
+        <a href="{% url 'shop:home' %}" class="btn-primary" style="padding: 12px 30px; border-radius: 30px; text-decoration: none;">
+            <i class="fas fa-home"></i> بازگشت به خانه
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.querySelectorAll('.video-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (!e.target.closest('.play-btn')) {
+                window.location.href = this.dataset.url || this.querySelector('a')?.href || this.onclick?.();
+            }
+        });
+    });
+</script>
+{% endblock %}

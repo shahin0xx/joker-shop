@@ -1,0 +1,558 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block meta_description %}خرید {{ category.name }} با بهترین قیمت و ضمانت اصالت از فروشگاه JOKERPLAYSTATION نیشابور. {{ products|length }} محصول در این دسته‌بندی.{% endblock %}
+
+{% block meta_keywords %}{{ category.name }}, خرید {{ category.name }}, {{ category.get_type_display }}, نیشابور{% endblock %}
+
+{% block og_title %}{{ category.name }} | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block og_description %}خرید {{ category.name }} با بهترین قیمت و ضمانت اصالت از فروشگاه تخصصی پلی استیشن در نیشابور.{% endblock %}
+
+{% block schema %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "{{ category.name }}",
+    "description": "لیست محصولات دسته‌بندی {{ category.name }}",
+    "numberOfItems": {{ products|length }},
+    "itemListElement": [
+        {% for product in products %}
+        {
+            "@type": "ListItem",
+            "position": {{ forloop.counter }},
+            "name": "{{ product.name }}",
+            "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'shop:product_detail' product.id %}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<style>
+    /* ===== هدر دسته‌بندی ===== */
+    .category-header {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+        margin-bottom: 60px;
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 40px;
+    }
+
+    .category-image {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: #0a0f1f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid var(--header-accent);
+        box-shadow: 0 0 30px rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    .category-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .category-info {
+        flex: 1;
+    }
+
+    .category-info h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #ffffff;
+    }
+
+    .category-info h1 span {
+        color: var(--header-accent);
+    }
+
+    .category-badges {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        background: rgba(var(--header-accent-rgb), 0.1);
+        color: var(--header-accent);
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border: 1px solid rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    /* ===== فیلتر و مرتب‌سازی ===== */
+    .filter-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        padding: 15px 25px;
+        background: rgba(20, 25, 40, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50px;
+    }
+
+    .product-count {
+        color: #ffffff;
+        font-size: 1rem;
+    }
+
+    .product-count span {
+        color: var(--header-accent);
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+
+    .sort-select {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        padding: 10px 25px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        outline: none;
+    }
+
+    .sort-select option {
+        background: #1a1f2f;
+        color: #ffffff;
+    }
+
+    /* ===== گرید محصولات با کارت‌های دایره‌ای ===== */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 30px;
+        margin-bottom: 60px;
+    }
+
+    .product-card {
+        text-align: center;
+        animation: fadeIn 0.6s ease forwards;
+        opacity: 0;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .product-image-circle {
+        width: 180px;
+        height: 180px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #0a0f1f;
+        border: 3px solid transparent;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-card:hover .product-image-circle {
+        border-color: var(--header-accent);
+        transform: scale(1.05);
+        box-shadow: 0 15px 30px rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    .product-image-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .product-card:hover .product-image-circle img {
+        transform: scale(1.1);
+    }
+
+    .product-info h3 {
+        color: #ffffff;
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    .product-category {
+        color: var(--header-accent);
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .product-price {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
+
+    .product-price small {
+        color: #a0a0b0;
+        font-size: 0.75rem;
+        font-weight: 400;
+    }
+
+    .product-btn {
+        display: inline-block;
+        padding: 8px 20px;
+        background: transparent;
+        border: 1px solid var(--header-accent);
+        color: var(--header-accent);
+        text-decoration: none;
+        font-weight: 500;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+    }
+
+    .product-btn:hover {
+        background: var(--header-accent);
+        color: #000000;
+    }
+
+    /* ===== صفحه‌بندی ===== */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 40px;
+    }
+
+    .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        color: #a0a0b0;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .page-link:hover,
+    .page-link.active {
+        border-color: var(--header-accent);
+        color: var(--header-accent);
+        background: rgba(var(--header-accent-rgb), 0.1);
+    }
+
+    /* ===== حالت خالی ===== */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        background: rgba(20, 25, 40, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        margin: 40px 0;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: var(--header-accent);
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        color: #ffffff;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #a0a0b0;
+        margin-bottom: 30px;
+    }
+
+    .btn-view-all {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        border: 1px solid var(--header-accent);
+        color: var(--header-accent);
+        padding: 12px 30px;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-view-all:hover {
+        background: var(--header-accent);
+        color: #000000;
+    }
+
+    /* ===== تاخیر انیمیشن‌ها ===== */
+    {% for product in products %}
+    .product-card:nth-child({{ forloop.counter }}) {
+        animation-delay: {{ forloop.counter|add:"-1"|divisibleby:"5" }}s;
+    }
+    {% endfor %}
+
+    /* ===== ریسپانسیو ===== */
+    @media (max-width: 992px) {
+        .category-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 30px;
+        }
+        .category-image {
+            width: 180px;
+            height: 180px;
+        }
+        .category-info h1 {
+            font-size: 2rem;
+        }
+        .category-badges {
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .category-header {
+            padding: 25px;
+        }
+        .category-image {
+            width: 150px;
+            height: 150px;
+        }
+        .category-info h1 {
+            font-size: 1.8rem;
+        }
+        .filter-bar {
+            flex-direction: column;
+            gap: 15px;
+            border-radius: 30px;
+        }
+        .products-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .product-image-circle {
+            width: 140px;
+            height: 140px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .category-header {
+            padding: 20px;
+        }
+        .category-image {
+            width: 130px;
+            height: 130px;
+        }
+        .category-info h1 {
+            font-size: 1.5rem;
+        }
+        .badge {
+            padding: 6px 15px;
+            font-size: 0.8rem;
+        }
+        .products-grid {
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        .product-image-circle {
+            width: 160px;
+            height: 160px;
+        }
+        .page-link {
+            width: 40px;
+            height: 40px;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .product-image-circle {
+            width: 140px;
+            height: 140px;
+        }
+    }
+</style>
+
+<!-- هدر دسته‌بندی با عکس دایره‌ای -->
+<div class="category-header">
+    {% if category.image %}
+    <div class="category-image">
+        <img src="{{ category.image.url }}" alt="{{ category.name }}">
+    </div>
+    {% else %}
+    <div class="category-image">
+        <i class="fas fa-folder-open" style="font-size: 4rem; color: var(--header-accent);"></i>
+    </div>
+    {% endif %}
+    <div class="category-info">
+        <h1>دسته‌بندی <span>{{ category.name }}</span></h1>
+        <div class="category-badges">
+            <span class="badge">{{ category.get_type_display }}</span>
+            {% if category.game_platform != 'none' %}
+            <span class="badge">{{ category.get_game_platform_display }}</span>
+            {% endif %}
+            <span class="badge">{{ products|length }} محصول</span>
+        </div>
+    </div>
+</div>
+
+<!-- فیلتر و مرتب‌سازی -->
+<div class="filter-bar">
+    <div class="product-count">
+        نمایش <span>{{ products|length }}</span> محصول
+    </div>
+    <select class="sort-select" id="sortProducts">
+        <option value="default">مرتب‌سازی پیش‌فرض</option>
+        <option value="price_asc">قیمت: کم به زیاد</option>
+        <option value="price_desc">قیمت: زیاد به کم</option>
+        <option value="newest">جدیدترین</option>
+        <option value="oldest">قدیمی‌ترین</option>
+    </select>
+</div>
+
+<!-- گرید محصولات با کارت‌های دایره‌ای -->
+{% if products %}
+<div class="products-grid" id="productsGrid">
+    {% for product in products %}
+    <div class="product-card" data-price="{{ product.price }}" data-date="{{ product.created_at|date:'U' }}">
+        <div class="product-image-circle">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+            <img src="{% static 'images/no-image.jpg' %}" alt="{{ product.name }}">
+            {% endif %}
+        </div>
+        <div class="product-info">
+            <span class="product-category">{{ product.category.name }}</span>
+            <h3>{{ product.name|truncatechars:30 }}</h3>
+            <div class="product-price">
+                {{ product.price|floatformat:0 }} <small>تومان</small>
+            </div>
+            <a href="{% url 'shop:product_detail' product.id %}" class="product-btn">
+                مشاهده
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- صفحه‌بندی -->
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="page-link">
+        <i class="fas fa-chevron-right"></i>
+    </a>
+    {% endif %}
+    
+    {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}
+    <span class="page-link active">{{ num }}</span>
+    {% else %}
+    <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+    {% endif %}
+    {% endfor %}
+    
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="page-link">
+        <i class="fas fa-chevron-left"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">
+        <i class="fas fa-box-open"></i>
+    </div>
+    <h3>محصولی یافت نشد</h3>
+    <p>در حال حاضر محصولی در این دسته‌بندی وجود ندارد</p>
+    <a href="{% url 'shop:category_list' %}" class="btn-view-all">
+        <span>بازگشت به دسته‌بندی‌ها</span>
+        <i class="fas fa-arrow-left"></i>
+    </a>
+</div>
+{% endif %}
+
+<script>
+    // مرتب‌سازی محصولات
+    document.getElementById('sortProducts')?.addEventListener('change', function(e) {
+        const sortValue = e.target.value;
+        const productsGrid = document.getElementById('productsGrid');
+        const products = Array.from(productsGrid.children);
+        
+        products.sort((a, b) => {
+            switch(sortValue) {
+                case 'price_asc':
+                    return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+                case 'price_desc':
+                    return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+                case 'newest':
+                    return parseInt(b.dataset.date) - parseInt(a.dataset.date);
+                case 'oldest':
+                    return parseInt(a.dataset.date) - parseInt(b.dataset.date);
+                default:
+                    return 0;
+            }
+        });
+        
+        productsGrid.innerHTML = '';
+        products.forEach(product => productsGrid.appendChild(product));
+    });
+
+    // بررسی درست لود شدن عکس‌ها
+    document.querySelectorAll('.product-image-circle img').forEach(img => {
+        img.onerror = function() {
+            this.src = "{% static 'images/no-image.jpg' %}";
+            this.onerror = null;
+        };
+    });
+
+    document.querySelectorAll('.category-image img').forEach(img => {
+        img.onerror = function() {
+            this.parentElement.innerHTML = '<i class="fas fa-folder-open" style="font-size: 4rem; color: var(--header-accent);"></i>';
+        };
+    });
+</script>
+{% endblock %}

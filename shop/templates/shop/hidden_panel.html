@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ROOT://TERMINAL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            font-family: 'Courier New', 'Fira Code', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* افکت پس‌زمینه - ماتریکس */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent 0px,
+                transparent 2px,
+                rgba(0, 255, 0, 0.03) 2px,
+                rgba(0, 255, 0, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* دایره‌های قرمز متحرک */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 40%, rgba(255, 0, 0, 0.05) 0%, transparent 50%);
+            animation: pulseBg 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes pulseBg {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 560px;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 0, 0, 0.4);
+            border-radius: 0;
+            padding: 25px 20px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.2), inset 0 0 20px rgba(255, 0, 0, 0.05);
+            animation: borderGlow 2s infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { border-color: rgba(255, 0, 0, 0.4); box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
+            50% { border-color: rgba(255, 0, 0, 0.9); box-shadow: 0 0 50px rgba(255, 0, 0, 0.5); }
+        }
+
+        /* خط چشمک زن بالا */
+        .crt-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px);
+            pointer-events: none;
+            z-index: 5;
+            animation: scan 6s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        /* هدر */
+        .header {
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ff0000;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            color: #ff0000;
+            font-size: clamp(14px, 4vw, 18px);
+            letter-spacing: 4px;
+            font-weight: normal;
+        }
+
+        .title span {
+            color: #ffffff;
+            background: #ff0000;
+            padding: 0 5px;
+            animation: blinkText 1s infinite;
+        }
+
+        @keyframes blinkText {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* وضعیت */
+        .status-box {
+            background: #0a0000;
+            border-left: 4px solid #ff0000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-label {
+            color: #666;
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .status-value {
+            font-size: clamp(16px, 5vw, 22px);
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .locked {
+            color: #ff0000;
+            text-shadow: 0 0 8px #ff0000;
+        }
+
+        .locked::before {
+            content: "[LOCKED] ";
+            color: #ff0000;
+        }
+
+        .unlocked {
+            color: #00ff00;
+            text-shadow: 0 0 8px #00ff00;
+        }
+
+        .unlocked::before {
+            content: "[ACTIVE] ";
+            color: #00ff00;
+        }
+
+        /* سیستم لاگ */
+        .log-box {
+            background: #050505;
+            border: 1px solid #1a0000;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
+        .log-line {
+            color: #00cc00;
+            padding: 4px 0;
+            border-bottom: 1px dotted #1a1a1a;
+            word-break: break-all;
+        }
+
+        .log-line:last-child {
+            border-bottom: none;
+        }
+
+        .log-line span {
+            color: #ff4444;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* دکمه‌ها */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 14px 10px;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(12px, 3.5vw, 14px);
+            font-weight: bold;
+            letter-spacing: 2px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #aa0000, #330000);
+            color: #ffffff;
+            border: 1px solid #ff0000;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ff0000, #660000);
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.8);
+            transform: scale(1.02);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #006600, #003300);
+            color: #ffffff;
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #00cc00, #004400);
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
+            transform: scale(1.02);
+        }
+
+        /* هش */
+        .hash-section {
+            background: #000000;
+            border: 1px solid #330000;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .hash-text {
+            font-family: monospace;
+            font-size: 10px;
+            color: #444;
+            word-break: break-all;
+            letter-spacing: 1px;
+        }
+
+        .hash-text span {
+            color: #ff0000;
+        }
+
+        /* هشدار */
+        .warning {
+            text-align: center;
+            font-size: 9px;
+            color: #550000;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 8px;
+            color: #222;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #110000;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 15px;
+            }
+            .btn {
+                padding: 12px 8px;
+                min-width: 120px;
+            }
+            .log-line {
+                font-size: 9px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="crt-lines"></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="title">ROOT@<span>SECURE_SHELL</span>:~#</div>
+        </div>
+        
+        <div class="status-box">
+            <div class="status-label">[ SYSTEM_STATUS ]</div>
+            {% if is_locked %}
+                <div class="status-value locked">ADMIN_PANEL::LOCKED</div>
+                <div class="status-label" style="margin-top: 6px;">>> ACCESS: <span style="color:#ff0000;">DENIED</span> <<</div>
+            {% else %}
+                <div class="status-value unlocked">ADMIN_PANEL::ACTIVE</div>
+                <div class="status-label" style="margin-top: 6px;">>> ACCESS: <span style="color:#00ff00;">GRANTED</span> <<</div>
+            {% endif %}
+        </div>
+        
+        <div class="log-box">
+            <div class="log-line">[<span>ROOT</span>] >_ INITIALIZING SECURE SHELL</div>
+            <div class="log-line">[<span>KERNEL</span>] >_ LOADING MODULES</div>
+            <div class="log-line">[<span>AUTH</span>] >_ TOKEN VERIFICATION: {% if is_locked %}FAILED{% else %}PASSED{% endif %}</div>
+            <div class="log-line">[<span>PANEL</span>] >_ STATUS: {% if is_locked %}LOCKED{% else %}OPERATIONAL{% endif %}</div>
+            <div class="log-line blink">[<span>MONITOR</span>] >_ ACTIVE_CONNECTIONS: 1</div>
+        </div>
+        
+        <div class="button-group">
+            {% if not is_locked %}
+                <form method="post" style="flex: 1;">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="lock_admin" class="btn btn-danger" onclick="return confirm('>> WARNING: This will LOCK the admin panel. Confirm? <<')">
+                        [ LOCK_SYSTEM ]
+                    </button>
+                </form>
+            {% else %}
+                <form method="post" style="flex: 1;">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="unlock_admin" class="btn btn-success" onclick="return confirm('>> WARNING: This will UNLOCK the admin panel. Confirm? <<')">
+                        [ UNLOCK_SYSTEM ]
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        
+        <div class="hash-section">
+            <div class="hash-text">
+                <span>┌────────────────────────────────────────────────┐</span><br>
+                <span>│</span> AUTH_TOKEN :: <span id="dynamicHash">0x7f83b1657ff1fc53b92dc18148a1d65d</span> <span>│</span><br>
+                <span>└────────────────────────────────────────────────┘</span>
+            </div>
+        </div>
+        
+        <div class="warning">
+            ⚡ UNAUTHORIZED ACCESS WILL BE PROSECUTED ⚡<br>
+            ALL ACTIONS ARE LOGGED AND MONITORED
+        </div>
+        
+        <div class="footer">
+            SECURE_SHELL v3.1.7 | ENCRYPTED CHANNEL ACTIVE
+        </div>
+    </div>
+    
+    <script>
+        const chars = "0123456789ABCDEF";
+        const hashSpan = document.getElementById('dynamicHash');
+        
+        function randomHash() {
+            let hash = "0x";
+            for(let i = 0; i < 32; i++) {
+                hash += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return hash;
+        }
+        
+        setInterval(() => {
+            if(hashSpan) {
+                hashSpan.innerText = randomHash();
+            }
+        }, 400);
+        
+        console.log("%c┌─────────────────────────────────────────────┐", "color: #ff0000");
+        console.log("%c│           SECURE SHELL ACTIVE               │", "color: #ff0000");
+        console.log("%c│      UNAUTHORIZED ACCESS PROHIBITED         │", "color: #ff0000");
+        console.log("%c└─────────────────────────────────────────────┘", "color: #ff0000");
+        
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+    </script>
+</body>
+</html>

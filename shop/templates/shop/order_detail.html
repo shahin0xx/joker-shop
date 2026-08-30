@@ -1,0 +1,445 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}جزئیات سفارش {{ order.order_number }} | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block content %}
+<style>
+    .order-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .order-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .order-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 10px;
+    }
+
+    .order-title span {
+        color: var(--header-accent);
+    }
+
+    .order-number {
+        font-size: 1.2rem;
+        color: var(--header-accent);
+        background: rgba(var(--header-accent-rgb), 0.1);
+        padding: 8px 20px;
+        border-radius: 30px;
+        display: inline-block;
+    }
+
+    .order-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+    }
+
+    .order-section {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        color: #ffffff;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        color: var(--header-accent);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .info-box {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 15px;
+    }
+
+    .info-label {
+        color: #a0a0b0;
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .status-pending {
+        background: rgba(255, 165, 0, 0.2);
+        color: #ffa500;
+        border: 1px solid #ffa500;
+    }
+
+    .status-paid {
+        background: rgba(0, 255, 255, 0.2);
+        color: #00ffff;
+        border: 1px solid #00ffff;
+    }
+
+    .status-completed {
+        background: rgba(0, 255, 0, 0.2);
+        color: #00ff00;
+        border: 1px solid #00ff00;
+    }
+
+    .status-cancelled {
+        background: rgba(255, 0, 0, 0.2);
+        color: #ff4444;
+        border: 1px solid #ff4444;
+    }
+
+    .products-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .products-table th {
+        text-align: right;
+        padding: 15px 10px;
+        color: #a0a0b0;
+        font-weight: 500;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .products-table td {
+        padding: 15px 10px;
+        color: #ffffff;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .product-name {
+        color: var(--header-accent);
+    }
+
+    .product-price {
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        margin-top: 20px;
+    }
+
+    .total-label {
+        color: #ffffff;
+        font-size: 1.1rem;
+    }
+
+    .total-value {
+        color: var(--header-accent);
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .receipt-image {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .receipt-image img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 12px;
+        border: 2px solid var(--header-accent);
+        cursor: pointer;
+    }
+
+    .timeline {
+        margin-top: 30px;
+        position: relative;
+        padding-right: 30px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 25px;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        right: -34px;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--header-accent);
+        border: 2px solid var(--header-accent);
+    }
+
+    .timeline-item.completed::before {
+        background: #00ff00;
+        border-color: #00ff00;
+    }
+
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+
+    .timeline-date {
+        color: #a0a0b0;
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+
+    .timeline-title {
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .timeline-desc {
+        color: #a0a0b0;
+        font-size: 0.9rem;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 25px;
+        background: transparent;
+        border: 1px solid var(--header-accent);
+        color: var(--header-accent);
+        text-decoration: none;
+        border-radius: 30px;
+        margin-top: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        background: var(--header-accent);
+        color: #000000;
+    }
+
+    @media (max-width: 992px) {
+        .order-grid { grid-template-columns: 1fr; }
+        .info-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+        .products-table { font-size: 0.9rem; }
+        .products-table th, 
+        .products-table td { padding: 10px 5px; }
+    }
+</style>
+
+<div class="order-detail-container">
+    <div class="order-header">
+        <h1 class="order-title">جزئیات <span>سفارش</span></h1>
+        <div class="order-number">{{ order.order_number }}</div>
+    </div>
+
+    <div class="order-grid">
+        <div>
+            <div class="order-section">
+                <h3 class="section-title">
+                    <i class="fas fa-box"></i>
+                    محصولات سفارش
+                </h3>
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>محصول</th>
+                            <th>تعداد</th>
+                            <th>قیمت واحد</th>
+                            <th>قیمت کل</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.cart.items.all %}
+                        <tr>
+                            <td class="product-name">{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.product.price|floatformat:0 }} تومان</td>
+                            <td class="product-price">{{ item.total_price|floatformat:0 }} تومان</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="total-row">
+                    <span class="total-label">مبلغ کل سفارش</span>
+                    <span class="total-value">{{ order.final_amount|floatformat:0 }} تومان</span>
+                </div>
+            </div>
+
+            <div class="order-section">
+                <h3 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    آدرس تحویل
+                </h3>
+                <div class="info-box">
+                    <div style="margin-bottom: 10px;">
+                        <div class="info-label">گیرنده</div>
+                        <div class="info-value">{{ order.full_name }}</div>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <div class="info-label">شماره تماس</div>
+                        <div class="info-value">{{ order.phone }}</div>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <div class="info-label">کد پستی</div>
+                        <div class="info-value">{{ order.postal_code }}</div>
+                    </div>
+                    <div>
+                        <div class="info-label">آدرس</div>
+                        <div class="info-value">{{ order.address }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="order-section">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    وضعیت سفارش
+                </h3>
+                
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="info-label">وضعیت</div>
+                        <div class="info-value">
+                            <span class="status-badge status-{{ order.status }}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">تاریخ ثبت</div>
+                        <div class="info-value">{{ order.created_at|date:"Y/m/d H:i" }}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">روش پرداخت</div>
+                        <div class="info-value">
+                            {% if order.receipt.payment_method == 'card' %}
+                                کارت به کارت
+                            {% else %}
+                                شماره شبا
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if order.discount_code %}
+                    <div class="info-box">
+                        <div class="info-label">کد تخفیف</div>
+                        <div class="info-value">{{ order.discount_code.code }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if order.receipt and order.receipt.receipt_image %}
+                <div class="receipt-image">
+                    <img src="{{ order.receipt.receipt_image.url }}" alt="رسید پرداخت" onclick="window.open(this.src)">
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="order-section">
+                <h3 class="section-title">
+                    <i class="fas fa-clock"></i>
+                    روند سفارش
+                </h3>
+                
+                <div class="timeline">
+                    <div class="timeline-item {% if order.status != 'cancelled' %}completed{% endif %}">
+                        <div class="timeline-date">{{ order.created_at|date:"Y/m/d H:i" }}</div>
+                        <div class="timeline-title">ثبت سفارش</div>
+                        <div class="timeline-desc">سفارش شما با موفقیت ثبت شد</div>
+                    </div>
+                    
+                    <div class="timeline-item {% if order.status == 'paid' or order.status == 'completed' %}completed{% endif %}">
+                        <div class="timeline-date">
+                            {% if order.status == 'paid' or order.status == 'completed' %}
+                                {{ order.updated_at|date:"Y/m/d H:i" }}
+                            {% else %}
+                                در انتظار
+                            {% endif %}
+                        </div>
+                        <div class="timeline-title">پرداخت</div>
+                        <div class="timeline-desc">
+                            {% if order.status == 'paid' or order.status == 'completed' %}
+                                پرداخت تایید شد
+                            {% else %}
+                                در انتظار تایید پرداخت
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item {% if order.status == 'completed' %}completed{% endif %}">
+                        <div class="timeline-date">
+                            {% if order.status == 'completed' %}
+                                {{ order.updated_at|date:"Y/m/d H:i" }}
+                            {% else %}
+                                در انتظار
+                            {% endif %}
+                        </div>
+                        <div class="timeline-title">تحویل سفارش</div>
+                        <div class="timeline-desc">
+                            {% if order.status == 'completed' %}
+                                سفارش تحویل داده شد
+                            {% else %}
+                                در حال پردازش
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="{% url 'shop:order_history' %}" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت به لیست سفارشات
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

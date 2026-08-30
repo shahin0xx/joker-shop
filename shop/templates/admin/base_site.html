@@ -1,0 +1,41 @@
+<!-- shop/templates/admin/base_site.html -->
+{% extends "admin/base_site.html" %}
+
+{% block branding %}
+    {{ block.super }}
+{% endblock %}
+
+{% block userlinks %}
+    {{ block.super }}
+    <style>
+        .assistant-link {
+            background: linear-gradient(135deg, #667eea, #764ba2) !important;
+            color: white !important;
+            padding: 5px 15px !important;
+            border-radius: 20px !important;
+            margin-left: 10px !important;
+            transition: all 0.3s !important;
+        }
+        .assistant-link:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+        }
+    </style>
+{% endblock %}
+
+{% block nav-global %}
+    <div style="float: left; margin: 8px 20px 0 0;">
+        <a href="{% url 'ai_assistant:panel' %}" class="assistant-link" style="
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+        ">
+            🤖 دستیار هوشمند
+        </a>
+    </div>
+    {{ block.super }}
+{% endblock %}

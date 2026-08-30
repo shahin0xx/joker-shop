@@ -1,0 +1,656 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}پنل مدیریت پیام‌ها | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block content %}
+<style>
+    /* استایل‌ها مثل قبل */
+    .admin-chat-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        height: calc(100vh - 150px);
+        min-height: 600px;
+        background: rgba(20, 25, 40, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+    }
+
+    .users-sidebar {
+        width: 350px;
+        background: rgba(0, 0, 0, 0.3);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .sidebar-header {
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-header h3 {
+        color: var(--header-accent);
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 40px 12px 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        color: #ffffff;
+        font-size: 0.9rem;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--header-accent);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--header-accent);
+    }
+
+    .users-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .user-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.02);
+        position: relative;
+    }
+
+    .user-item:hover {
+        background: rgba(var(--header-accent-rgb), 0.1);
+    }
+
+    .user-item.active {
+        background: rgba(var(--header-accent-rgb), 0.15);
+        border: 1px solid var(--header-accent);
+    }
+
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--header-accent), var(--accent-2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #000000;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .user-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .user-name {
+        color: #ffffff;
+        font-weight: 600;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .user-phone {
+        color: var(--header-accent);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 5px;
+    }
+
+    .user-phone i {
+        font-size: 0.7rem;
+    }
+
+    .last-message {
+        color: #a0a0b0;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .message-time {
+        color: #a0a0b0;
+        font-size: 0.7rem;
+        margin-right: 10px;
+    }
+
+    .unread-badge {
+        background: var(--header-accent);
+        color: #000000;
+        padding: 3px 8px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    .chat-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .chat-header {
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .chat-header-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: #000000;
+        font-weight: 600;
+    }
+
+    .chat-header-info {
+        flex: 1;
+    }
+
+    .chat-header-name {
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 3px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chat-header-phone {
+        color: var(--header-accent);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .messages-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .message {
+        display: flex;
+        flex-direction: column;
+        max-width: 70%;
+    }
+
+    .message.sent {
+        align-self: flex-end;
+    }
+
+    .message.received {
+        align-self: flex-start;
+    }
+
+    .message-bubble {
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        word-wrap: break-word;
+    }
+
+    .message.sent .message-bubble {
+        background: var(--header-accent);
+        color: #000000;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message.received .message-bubble {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border-bottom-left-radius: 4px;
+    }
+
+    .message-text {
+        line-height: 1.6;
+        margin-bottom: 5px;
+    }
+
+    .message-media {
+        margin: 10px 0;
+        max-width: 300px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .message-media img,
+    .message-media video {
+        width: 100%;
+        max-height: 200px;
+        object-fit: contain;
+        background: #000;
+        border-radius: 12px;
+        cursor: pointer;
+    }
+
+    .message-meta {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.5);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 5px;
+    }
+
+    .message.sent .message-meta {
+        justify-content: flex-end;
+    }
+
+    .admin-badge {
+        background: var(--accent-2);
+        color: #000000;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .chat-footer {
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .message-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .message-input {
+        flex: 1;
+        padding: 12px 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        color: #ffffff;
+        font-size: 0.95rem;
+        resize: none;
+        min-height: 45px;
+        max-height: 100px;
+    }
+
+    .message-input:focus {
+        outline: none;
+        border-color: var(--header-accent);
+    }
+
+    .attach-btn {
+        background: transparent;
+        border: none;
+        color: var(--header-accent);
+        font-size: 1.3rem;
+        cursor: pointer;
+        padding: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .attach-btn:hover {
+        color: var(--accent-2);
+        transform: scale(1.1);
+    }
+
+    .send-btn {
+        background: var(--button-primary-bg);
+        color: var(--button-primary-text);
+        border: none;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .send-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 20px var(--button-primary-bg);
+    }
+
+    .no-user-selected {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 20px;
+        color: #a0a0b0;
+    }
+
+    .no-user-selected i {
+        font-size: 4rem;
+        color: var(--header-accent);
+        opacity: 0.5;
+    }
+
+    .users-list::-webkit-scrollbar,
+    .messages-area::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .users-list::-webkit-scrollbar-track,
+    .messages-area::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .users-list::-webkit-scrollbar-thumb,
+    .messages-area::-webkit-scrollbar-thumb {
+        background: var(--header-accent);
+        border-radius: 3px;
+    }
+
+    @media (max-width: 992px) {
+        .admin-chat-wrapper {
+            height: calc(100vh - 120px);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .admin-chat-wrapper {
+            flex-direction: column;
+        }
+
+        .users-sidebar {
+            width: 100%;
+            height: 250px;
+        }
+
+        .message {
+            max-width: 85%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .message {
+            max-width: 90%;
+        }
+
+        .message-form {
+            gap: 5px;
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<div class="admin-chat-wrapper">
+    <!-- سایدبار کاربران -->
+    <div class="users-sidebar">
+        <div class="sidebar-header">
+            <h3>
+                <i class="fas fa-users"></i>
+                کاربران
+            </h3>
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchUser" placeholder="جستجو با نام یا شماره تماس...">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+        
+        <div class="users-list" id="usersList">
+            {% for item in users %}
+            <div class="user-item {% if selected_user and selected_user.id == item.user.id %}active{% endif %}" 
+                 onclick="window.location.href='?user_id={{ item.user.id }}'">
+                <div class="user-avatar">
+                    {{ item.user.username|slice:":1"|upper }}
+                </div>
+                <div class="user-info">
+                    <div class="user-name">
+                        {{ item.user.username }}
+                        {% if item.unread_count > 0 %}
+                            <span class="unread-badge">{{ item.unread_count }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="user-phone">
+                        <i class="fas fa-phone"></i>
+                        {{ item.phone }}
+                    </div>
+                    <div class="last-message">
+                        {% if item.last_message %}
+                            {% if item.last_message.message %}
+                                {{ item.last_message.message|truncatechars:30 }}
+                            {% elif item.last_message.image %}
+                                📷 عکس
+                            {% elif item.last_message.video %}
+                                🎥 ویدیو
+                            {% endif %}
+                            <span class="message-time">{{ item.last_message.created_at|date:"H:i" }}</span>
+                        {% else %}
+                            <span style="color: #a0a0b0;">هنوز پیامی ندارد</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 30px; color: #a0a0b0;">
+                <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                <p>هیچ کاربری یافت نشد</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- بخش اصلی چت -->
+    <div class="chat-main">
+        {% if selected_user %}
+        <!-- هدر چت -->
+        <div class="chat-header">
+            <div class="chat-header-avatar">
+                {{ selected_user.username|slice:":1"|upper }}
+            </div>
+            <div class="chat-header-info">
+                <div class="chat-header-name">
+                    {{ selected_user.username }}
+                    {% if selected_user.profile.full_name %}
+                        <small style="color: #a0a0b0; font-size: 0.8rem;">({{ selected_user.profile.full_name }})</small>
+                    {% endif %}
+                </div>
+                <div class="chat-header-phone">
+                    <i class="fas fa-phone"></i>
+                    {% with phone=selected_user.profile.phone %}
+                        {{ phone|default:'ثبت نشده' }}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش پیام‌ها -->
+        <div class="messages-area" id="messagesArea">
+            {% for message in user_messages %}
+            <div class="message {% if message.is_admin %}sent{% else %}received{% endif %}">
+                <div class="message-bubble">
+                    {% if message.message %}
+                    <div class="message-text">{{ message.message }}</div>
+                    {% endif %}
+                    
+                    {% if message.image %}
+                    <div class="message-media">
+                        <img src="{{ message.image.url }}" alt="تصویر" onclick="window.open(this.src)">
+                    </div>
+                    {% endif %}
+                    
+                    {% if message.video %}
+                    <div class="message-media">
+                        <video controls>
+                            <source src="{{ message.video.url }}">
+                        </video>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="message-meta">
+                        <span>{{ message.created_at|date:"H:i" }}</span>
+                        {% if message.is_admin %}
+                        <span class="admin-badge">ادمین</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 50px; color: #a0a0b0;">
+                <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>هنوز پیامی با این کاربر رد و بدل نشده است</p>
+                <p style="font-size: 0.9rem; margin-top: 10px;">اولین پیام را شما ارسال کنید</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- بخش ارسال پیام -->
+        <div class="chat-footer">
+            <form method="post" enctype="multipart/form-data" class="message-form" id="messageForm">
+                {% csrf_token %}
+                <textarea name="message" class="message-input" placeholder="پیام خود را بنویسید..." rows="1" id="messageInput"></textarea>
+                
+                <label for="fileInput" class="attach-btn">
+                    <i class="fas fa-paperclip"></i>
+                </label>
+                <input type="file" name="file" id="fileInput" accept="image/*,video/*" style="display: none;">
+                
+                <button type="submit" class="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+            <div id="attachmentPreview" style="display: none; margin-top: 10px;"></div>
+        </div>
+        {% else %}
+        <div class="no-user-selected">
+            <i class="fas fa-comment-dots"></i>
+            <p>برای مشاهده پیام‌ها، یک کاربر را از لیست انتخاب کنید</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // اسکرول به پایین
+    function scrollToBottom() {
+        const messagesArea = document.getElementById('messagesArea');
+        if (messagesArea) {
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        scrollToBottom();
+        
+        const textarea = document.getElementById('messageInput');
+        if (textarea) {
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }
+
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('attachmentPreview');
+
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const fileType = file.type.split('/')[0];
+                const icon = fileType === 'image' ? 'fa-image' : 'fa-video';
+                
+                preview.style.display = 'block';
+                preview.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 12px;">
+                        <i class="fas ${icon}" style="color: var(--header-accent);"></i>
+                        <span style="flex: 1; color: #fff;">${file.name}</span>
+                        <span onclick="removeFile()" style="color: #ff4444; cursor: pointer;">✕</span>
+                    </div>
+                `;
+            }
+        });
+    });
+
+    function removeFile() {
+        document.getElementById('fileInput').value = '';
+        document.getElementById('attachmentPreview').style.display = 'none';
+    }
+
+    // جستجوی کاربران
+    document.getElementById('searchUser')?.addEventListener('input', function(e) {
+        const searchText = e.target.value.toLowerCase();
+        const users = document.querySelectorAll('.user-item');
+        
+        users.forEach(user => {
+            const name = user.querySelector('.user-name').textContent.toLowerCase();
+            const phone = user.querySelector('.user-phone').textContent.toLowerCase();
+            
+            if (name.includes(searchText) || phone.includes(searchText)) {
+                user.style.display = 'flex';
+            } else {
+                user.style.display = 'none';
+            }
+        });
+    });
+
+
+    setInterval(function() {
+        if (document.getElementById('selectedUserId')) {
+            location.reload();
+        }
+    }, 5000);
+</script>
+{% endblock %}

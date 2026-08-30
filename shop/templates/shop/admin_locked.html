@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>KERNEL_PANIC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            font-family: 'Courier New', 'Fira Code', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* افکت خطوط قرمز */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.02) 0px,
+                rgba(255, 0, 0, 0.02) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* دایره قرمز ضربان‌دار */
+        .pulse-ring {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(ellipse at center, rgba(255, 0, 0, 0.05) 0%, transparent 70%);
+            animation: pulseRing 4s infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes pulseRing {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+        }
+
+        .main {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 750px;
+            background: rgba(0, 0, 0, 0.88);
+            border: 2px solid #ff0000;
+            padding: 35px 25px;
+            animation: borderFlash 0.5s infinite;
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.3);
+        }
+
+        @keyframes borderFlash {
+            0%, 100% { border-color: #ff0000; box-shadow: 0 0 20px rgba(255, 0, 0, 0.3); }
+            50% { border-color: #ff4444; box-shadow: 0 0 60px rgba(255, 0, 0, 0.7); }
+        }
+
+        /* کد خطا */
+        .error-code {
+            text-align: center;
+            font-size: clamp(28px, 8vw, 64px);
+            font-weight: bold;
+            color: #ff0000;
+            text-shadow: 0 0 15px #ff0000;
+            letter-spacing: 8px;
+            margin-bottom: 15px;
+            word-break: break-word;
+        }
+
+        .error-type {
+            text-align: center;
+            font-size: clamp(14px, 4vw, 22px);
+            color: #ff4444;
+            letter-spacing: 3px;
+            margin-bottom: 25px;
+        }
+
+        /* باکس خطا */
+        .error-box {
+            background: #0a0000;
+            border-left: 5px solid #ff0000;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .error-line {
+            color: #ff6666;
+            font-size: clamp(11px, 3vw, 14px);
+            font-family: monospace;
+            padding: 6px 0;
+            border-bottom: 1px solid #1a0000;
+            word-break: break-word;
+        }
+
+        .error-line:last-child {
+            border-bottom: none;
+        }
+
+        .error-line::before {
+            content: ">> ";
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        .critical-line {
+            color: #ff0000;
+            font-weight: bold;
+            animation: criticalBlink 0.8s infinite;
+        }
+
+        @keyframes criticalBlink {
+            0%, 100% { opacity: 1; text-shadow: 0 0 5px #ff0000; }
+            50% { opacity: 0.5; text-shadow: 0 0 15px #ff0000; }
+        }
+
+        /* هکس دامپ */
+        .hexdump {
+            background: #000000;
+            border: 1px solid #330000;
+            padding: 15px;
+            font-family: monospace;
+            font-size: clamp(8px, 2.5vw, 11px);
+            color: #00ff00;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .hexdump pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* داکت خطا */
+        .stacktrace {
+            background: #050000;
+            border: 1px solid #1a0000;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .stack-line {
+            color: #aa5555;
+            font-size: clamp(9px, 2.5vw, 11px);
+            font-family: monospace;
+            padding: 3px 0;
+            word-break: break-word;
+        }
+
+        /* لودینگ بار */
+        .loading-bar {
+            width: 100%;
+            height: 2px;
+            background: #1a0000;
+            margin: 25px 0 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading-fill {
+            position: absolute;
+            height: 100%;
+            width: 0%;
+            background: #ff0000;
+            animation: loadingProgress 3s ease-in-out infinite;
+        }
+
+        @keyframes loadingProgress {
+            0% { width: 0%; left: 0; }
+            50% { width: 100%; left: 0; }
+            100% { width: 0%; left: 100%; }
+        }
+
+        /* فوتر */
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #1a0000;
+        }
+
+        .footer-text {
+            color: #333;
+            font-size: clamp(8px, 2.5vw, 10px);
+            letter-spacing: 1px;
+        }
+
+        .footer-text span {
+            color: #ff0000;
+        }
+
+        .blink {
+            animation: blinkText 1s infinite;
+        }
+
+        @keyframes blinkText {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* هدر */
+        .header-warning {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .warning-icon {
+            font-size: clamp(40px, 12vw, 80px);
+            color: #ff0000;
+            text-shadow: 0 0 20px #ff0000;
+            animation: shake 0.3s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-3px, -2px); }
+            75% { transform: translate(3px, 2px); }
+        }
+
+        @media (max-width: 600px) {
+            .main {
+                padding: 25px 18px;
+            }
+            .error-box {
+                padding: 15px;
+            }
+            .error-line {
+                padding: 4px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pulse-ring"></div>
+    
+    <div class="main">
+        <div class="header-warning">
+            <div class="warning-icon">⚠</div>
+        </div>
+        
+        <div class="error-code">
+            0xDEADBEEF
+        </div>
+        
+        <div class="error-type">
+            <span class="blink">KERNEL_PANIC - ACCESS_VIOLATION</span>
+        </div>
+        
+        <div class="error-box">
+            <div class="error-line">[SYSTEM] Security breach detected in admin session</div>
+            <div class="error-line">[KERNEL] Admin panel access has been revoked</div>
+            <div class="error-line">[FILESYSTEM] /admin directory is now inaccessible</div>
+            <div class="error-line">[DATABASE] User privileges have been reset</div>
+            <div class="error-line">[NETWORK] All admin connections are blocked</div>
+            <div class="error-line critical-line">[CRITICAL] This system has been permanently locked</div>
+            <div class="error-line">[AUDIT] Incident has been logged and will be reported</div>
+        </div>
+        
+        <div class="hexdump">
+            <pre>00000000  53 59 53 54 45 4D 20 4C 4F 43 4B 45 44 20 20 20  |SYSTEM LOCKED   |
+00000010  41 43 43 45 53 53 20 44 45 4E 49 45 44 20 20 20  |ACCESS DENIED   |
+00000020  43 4F 4E 54 41 43 54 20 41 44 4D 49 4E 20 20 20  |CONTACT ADMIN   |
+00000030  46 4F 52 20 52 45 53 54 4F 52 41 54 49 4F 4E 20  |FOR RESTORATION |
+00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|</pre>
+        </div>
+        
+        <div class="error-box" style="border-left-color: #ff6600;">
+            <div class="error-line" style="color: #ffaa00;">[ADMIN] Restoration requires authorization key</div>
+            <div class="error-line" style="color: #ffaa00;">[ADMIN] Contact the system administrator immediately</div>
+            <div class="error-line" style="color: #ffaa00;">[ADMIN] Provide your purchase verification code</div>
+        </div>
+        
+        <div class="stacktrace">
+            <div class="stack-line">Traceback (most recent call last):</div>
+            <div class="stack-line">  File "/admin/__init__.py", line 42, in authenticate</div>
+            <div class="stack-line">    raise PermissionError("ACCESS_DENIED")</div>
+            <div class="stack-line">PermissionError: [SECURITY] ACCESS_DENIED - ADMIN_PANEL_LOCKED</div>
+            <div class="stack-line">  &nbsp;&nbsp;&nbsp;&nbsp;^</div>
+            <div class="stack-line">SystemExit: 0xDEADBEEF</div>
+        </div>
+        
+        <div class="loading-bar">
+            <div class="loading-fill"></div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-text">
+                <span>[ SYSTEM LOCKDOWN ACTIVE ]</span><br>
+                Your IP address and session have been logged.<br>
+                This incident will be reported to system security.<br>
+                <span id="timestamp" class="blink"></span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('timestamp').innerText = new Date().toUTCString();
+        
+        let titles = [
+            "KERNEL_PANIC", "0xDEADBEEF", "SYSTEM_LOCKED", 
+            "ACCESS_DENIED", "SEGMENTATION_FAULT", "FATAL_ERROR",
+            "ADMIN_LOCKED", "UNAUTHORIZED"
+        ];
+        let idx = 0;
+        setInterval(() => {
+            document.title = titles[idx % titles.length];
+            idx++;
+        }, 700);
+        
+        console.log("%c┌─────────────────────────────────────────────────┐", "color: #ff0000");
+        console.log("%c│                 KERNEL PANIC                    │", "color: #ff0000");
+        console.log("%c│           SYSTEM LOCKED - v3.1.7               │", "color: #ff0000");
+        console.log("%c│        UNAUTHORIZED ACCESS DETECTED            │", "color: #ff0000");
+        console.log("%c│         CONTACT ADMIN FOR RESTORATION          │", "color: #ff0000");
+        console.log("%c└─────────────────────────────────────────────────┘", "color: #ff0000");
+        
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+                (e.ctrlKey && e.key === 'U') || (e.ctrlKey && e.shiftKey && e.key === 'C')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

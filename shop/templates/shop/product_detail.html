@@ -1,0 +1,376 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block meta_description %}{{ product.description|striptags|truncatechars:160 }}{% endblock %}
+
+{% block meta_keywords %}{{ product.name }}, {{ product.category.name }}, خرید {{ product.name }}, نیشابور{% endblock %}
+
+{% block og_title %}{{ product.name }} | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block og_description %}{{ product.description|striptags|truncatechars:160 }}{% endblock %}
+
+{% block og_image %}{% if product.image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+
+{% block schema %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "{{ product.name }}",
+    "description": "{{ product.description|striptags }}",
+    "image": "{% if product.image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% endif %}",
+    "offers": {
+        "@type": "Offer",
+        "price": "{{ product.price }}",
+        "priceCurrency": "IRR",
+        "availability": "{% if product.is_available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+    }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<style>
+    .product-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 30px;
+        padding: 15px 20px;
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        font-size: 0.9rem;
+    }
+
+    .breadcrumb a {
+        color: var(--header-accent);
+        text-decoration: none;
+    }
+
+    .breadcrumb span {
+        color: #a0a0b0;
+    }
+
+    .product-main {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 60px;
+    }
+
+    .product-gallery {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 30px;
+    }
+
+    .product-image-main {
+        width: 100%;
+        height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0a0f1f;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .product-image-main img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .product-info {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 30px;
+    }
+
+    .product-info h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #ffffff;
+    }
+
+    .product-meta {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .product-category {
+        padding: 6px 15px;
+        background: rgba(var(--header-accent-rgb), 0.1);
+        border: 1px solid var(--header-accent);
+        border-radius: 20px;
+        color: var(--header-accent);
+        font-size: 0.85rem;
+    }
+
+    .product-availability {
+        padding: 6px 15px;
+        background: rgba(0, 255, 0, 0.1);
+        border: 1px solid #00ff00;
+        border-radius: 20px;
+        color: #00ff00;
+        font-size: 0.85rem;
+    }
+
+    .product-price {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 20px;
+    }
+
+    .product-price small {
+        font-size: 1rem;
+        color: #a0a0b0;
+        font-weight: 400;
+    }
+
+    .product-description {
+        margin-bottom: 30px;
+    }
+
+    .product-description h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        color: var(--header-accent);
+    }
+
+    .product-description p {
+        color: #a0a0b0;
+        line-height: 1.8;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .quantity-input {
+        width: 80px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: #ffffff;
+        text-align: center;
+    }
+
+    .add-to-cart {
+        flex: 1;
+        padding: 12px 25px;
+        background: var(--button-primary-bg);
+        color: var(--button-primary-text);
+        border: none;
+        border-radius: 30px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .add-to-cart:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px var(--button-primary-bg);
+    }
+
+    .related-products {
+        margin-top: 60px;
+    }
+
+    .related-title {
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+        color: #ffffff;
+        text-align: center;
+    }
+
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+
+    .related-card {
+        text-align: center;
+        padding: 15px;
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .related-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--header-accent);
+    }
+
+    .related-image {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 15px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #0a0f1f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .related-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .related-card h4 {
+        color: #ffffff;
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+    }
+
+    .related-price {
+        color: var(--header-accent);
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .related-link {
+        display: inline-block;
+        padding: 5px 15px;
+        border: 1px solid var(--header-accent);
+        border-radius: 20px;
+        color: var(--header-accent);
+        text-decoration: none;
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+    }
+
+    .related-link:hover {
+        background: var(--header-accent);
+        color: #000000;
+    }
+
+    @media (max-width: 992px) {
+        .product-main { grid-template-columns: 1fr; }
+        .related-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+        .product-image-main { height: 300px; }
+        .product-info h1 { font-size: 1.8rem; }
+        .product-price { font-size: 2rem; }
+    }
+
+    @media (max-width: 576px) {
+        .related-grid { grid-template-columns: 1fr; }
+        .product-actions { flex-direction: column; }
+        .add-to-cart { width: 100%; }
+    }
+</style>
+
+<div class="product-container">
+    <div class="breadcrumb">
+        <a href="{% url 'shop:home' %}">خانه</a>
+        <i class="fas fa-chevron-left" style="color: var(--header-accent); font-size: 0.8rem;"></i>
+        <a href="{% url 'shop:category_detail' product.category.slug %}">{{ product.category.name }}</a>
+        <i class="fas fa-chevron-left" style="color: var(--header-accent); font-size: 0.8rem;"></i>
+        <span>{{ product.name|truncatechars:30 }}</span>
+    </div>
+
+    <div class="product-main">
+        <div class="product-gallery">
+            <div class="product-image-main">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" id="mainImage">
+                {% else %}
+                <img src="{% static 'images/no-image.jpg' %}" alt="{{ product.name }}">
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="product-info">
+            <h1>{{ product.name }}</h1>
+            
+            <div class="product-meta">
+                <span class="product-category">{{ product.category.name }}</span>
+                <span class="product-availability">
+                    {% if product.is_available %}موجود{% else %}ناموجود{% endif %}
+                </span>
+                {% if product.is_new %}
+                <span class="product-category" style="border-color: #ffd700; color: #ffd700;">جدید</span>
+                {% endif %}
+            </div>
+
+            <div class="product-price">
+    {{ product.price|floatformat:0 }} <small>تومان</small>
+</div>
+
+            <div class="product-description">
+                <h3>توضیحات محصول</h3>
+                <p>{{ product.description|linebreaks }}</p>
+            </div>
+
+            {% if user.is_authenticated %}
+            <form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="product-actions">
+                {% csrf_token %}
+                <input type="number" name="quantity" class="quantity-input" value="1" min="1" max="10">
+                <button type="submit" class="add-to-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    افزودن به سبد خرید
+                </button>
+            </form>
+            {% else %}
+            <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                <p style="color: #a0a0b0; margin-bottom: 15px;">برای خرید باید وارد حساب کاربری شوید</p>
+                <a href="{% url 'shop:login' %}" class="add-to-cart" style="text-decoration: none; display: inline-block;">ورود به حساب</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if related_products %}
+    <div class="related-products">
+        <h3 class="related-title">محصولات مرتبط</h3>
+        <div class="related-grid">
+            {% for related in related_products %}
+            <div class="related-card" onclick="window.location.href='{% url 'shop:product_detail' related.id %}'">
+                <div class="related-image">
+                    {% if related.image %}
+                    <img src="{{ related.image.url }}" alt="{{ related.name }}">
+                    {% else %}
+                    <img src="{% static 'images/no-image.jpg' %}" alt="{{ related.name }}">
+                    {% endif %}
+                </div>
+                <h4>{{ related.name|truncatechars:25 }}</h4>
+                <div class="related-price">{{ related.price|floatformat:0 }} تومان</div>
+                <a href="{% url 'shop:product_detail' related.id %}" class="related-link">مشاهده</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

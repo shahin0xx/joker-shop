@@ -1,0 +1,315 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}لیست بازی‌ها | JOKERPLAYSTATION{% endblock %}
+
+{% block meta_description %}جدیدترین و محبوب‌ترین بازی‌های پلی استیشن، ایکس باکس و کامپیوتر را با بهترین قیمت از JOKERPLAYSTATION نیشابور تهیه کنید.{% endblock %}
+
+{% block meta_keywords %}بازی, پلی استیشن, ایکس باکس, کامپیوتر, PS5, PS4, Xbox, PC, بازی جدید, قیمت بازی{% endblock %}
+
+{% block content %}
+<style>
+    .games-hero {
+        background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
+        border-radius: 30px;
+        padding: 50px 30px;
+        text-align: center;
+        margin-bottom: 50px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+    
+    .games-hero h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff, var(--header-accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 15px;
+    }
+    
+    .games-hero p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .platform-filter {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+    }
+    
+    .platform-btn {
+        padding: 12px 28px;
+        border-radius: 40px;
+        background: rgba(20, 25, 40, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+    
+    .platform-btn i {
+        margin-left: 8px;
+    }
+    
+    .platform-btn:hover,
+    .platform-btn.active {
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+        color: #000;
+        border-color: transparent;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 255, 255, 0.3);
+    }
+    
+    .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 30px;
+        margin-bottom: 60px;
+    }
+    
+    .game-card {
+        background: rgba(15, 20, 35, 0.85);
+        backdrop-filter: blur(15px);
+        border-radius: 24px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        text-decoration: none;
+        display: block;
+    }
+    
+    .game-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--header-accent);
+        box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+    }
+    
+    .game-image-wrapper {
+        position: relative;
+        overflow: hidden;
+        height: 220px;
+    }
+    
+    .game-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .game-card:hover .game-image {
+        transform: scale(1.1);
+    }
+    
+    .game-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .game-card:hover .game-overlay {
+        opacity: 1;
+    }
+    
+    .view-btn {
+        background: var(--button-primary-bg);
+        color: var(--button-primary-text);
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .game-info {
+        padding: 20px;
+    }
+    
+    .game-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+    
+    .game-platform {
+        display: inline-block;
+        background: rgba(0, 255, 255, 0.15);
+        color: var(--header-accent);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .rating {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .stars {
+        display: flex;
+        gap: 3px;
+    }
+    
+    .star-full {
+        color: #FFD700;
+        font-size: 0.85rem;
+    }
+    
+    .star-half {
+        color: #FFD700;
+        font-size: 0.85rem;
+    }
+    
+    .star-empty {
+        color: #555;
+        font-size: 0.85rem;
+    }
+    
+    .rating-value {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+    }
+    
+    .game-description {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        background: rgba(15, 20, 35, 0.85);
+        border-radius: 30px;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--header-accent);
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h3 {
+        color: #fff;
+        margin-bottom: 10px;
+    }
+    
+    .empty-state p {
+        color: var(--text-secondary);
+    }
+    
+    @media (max-width: 768px) {
+        .games-hero h1 { font-size: 2rem; }
+        .games-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .game-image-wrapper { height: 160px; }
+        .game-info { padding: 12px; }
+        .game-title { font-size: 1rem; }
+    }
+    
+    @media (max-width: 480px) {
+        .games-grid { grid-template-columns: 1fr; }
+        .platform-btn { padding: 8px 16px; font-size: 0.8rem; }
+    }
+</style>
+
+<div class="container">
+    <div class="games-hero">
+        <h1>
+            <i class="fas fa-gamepad"></i> 
+            لیست بازی‌ها
+        </h1>
+        <p>جدیدترین و محبوب‌ترین بازی‌های جهان را با بهترین قیمت از ما تهیه کنید</p>
+    </div>
+    
+    <div class="platform-filter">
+        <a href="{% url 'shop:game_list' %}" class="platform-btn {% if not platform %}active{% endif %}">
+            <i class="fas fa-globe"></i> همه
+        </a>
+        <a href="{% url 'shop:game_list_by_platform' 'playstation' %}" class="platform-btn {% if platform == 'پلی استیشن' %}active{% endif %}">
+            <i class="fab fa-playstation"></i> پلی استیشن
+        </a>
+        <a href="{% url 'shop:game_list_by_platform' 'xbox' %}" class="platform-btn {% if platform == 'ایکس باکس' %}active{% endif %}">
+            <i class="fab fa-xbox"></i> ایکس باکس
+        </a>
+        <a href="{% url 'shop:game_list_by_platform' 'pc' %}" class="platform-btn {% if platform == 'کامپیوتر' %}active{% endif %}">
+            <i class="fas fa-desktop"></i> کامپیوتر
+        </a>
+    </div>
+    
+    <div class="games-grid">
+        {% for game in games %}
+        <a href="{% url 'shop:game_detail' game.id %}" class="game-card">
+            <div class="game-image-wrapper">
+                {% if game.image %}
+                <img src="{{ game.image.url }}" alt="{{ game.name }}" class="game-image">
+                {% else %}
+                <div class="game-image" style="background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-gamepad" style="font-size: 4rem; color: #fff;"></i>
+                </div>
+                {% endif %}
+                <div class="game-overlay">
+                    <span class="view-btn">
+                        <i class="fas fa-eye"></i> مشاهده جزئیات
+                    </span>
+                </div>
+            </div>
+            <div class="game-info">
+                <h3 class="game-title">{{ game.name }}</h3>
+                <span class="game-platform">
+                    <i class="fas fa-tag"></i> {{ game.get_platform_display }}
+                </span>
+                {% if game.rating > 0 %}
+                <div class="rating">
+                    <div class="stars">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= game.rating %}
+                                <i class="fas fa-star star-full"></i>
+                            {% elif forloop.counter|add:"-0.5" <= game.rating %}
+                                <i class="fas fa-star-half-alt star-half"></i>
+                            {% else %}
+                                <i class="far fa-star star-empty"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="rating-value">({{ game.rating }}/5)</span>
+                </div>
+                {% endif %}
+                {% if game.description %}
+                <p class="game-description">{{ game.description|truncatechars:80 }}</p>
+                {% endif %}
+            </div>
+        </a>
+        {% empty %}
+        <div class="empty-state">
+            <i class="fas fa-gamepad"></i>
+            <h3>هیچ بازی برای نمایش وجود ندارد!</h3>
+            <p>به زودی بازی‌های جدید به لیست اضافه خواهند شد.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

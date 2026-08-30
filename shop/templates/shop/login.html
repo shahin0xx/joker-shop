@@ -1,0 +1,143 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}ورود | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block content %}
+<style>
+    .login-container {
+        max-width: 450px;
+        margin: 0 auto;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .login-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 10px;
+    }
+
+    .login-title span {
+        color: var(--header-accent);
+    }
+
+    .login-subtitle {
+        color: #a0a0b0;
+        font-size: 0.9rem;
+    }
+
+    .login-card {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 35px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        color: #a0a0b0;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .form-group label i {
+        color: var(--header-accent);
+        margin-left: 8px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--header-accent);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 14px;
+        background: var(--button-primary-bg);
+        color: var(--button-primary-text);
+        border: none;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px var(--button-primary-bg);
+    }
+
+    .register-link {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        color: #a0a0b0;
+    }
+
+    .register-link a {
+        color: var(--header-accent);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .register-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-header">
+        <h1 class="login-title">ورود به <span>حساب</span></h1>
+        <p class="login-subtitle">به فروشگاه تخصصی گیمینگ JOKERPLAYSTATION خوش آمدید</p>
+    </div>
+
+    <div class="login-card">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> نام کاربری</label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> رمز عبور</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+
+            <button type="submit" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i> ورود
+            </button>
+
+            <div class="register-link">
+                حساب کاربری ندارید؟ <a href="{% url 'shop:register' %}">ثبت‌نام کنید</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

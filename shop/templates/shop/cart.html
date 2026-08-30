@@ -1,0 +1,342 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}سبد خرید | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block content %}
+<style>
+    .cart-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .cart-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .cart-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 10px;
+    }
+
+    .cart-title span {
+        color: var(--header-accent);
+    }
+
+    .cart-empty {
+        text-align: center;
+        padding: 80px 20px;
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+    }
+
+    .cart-empty-icon {
+        font-size: 5rem;
+        color: var(--header-accent);
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .cart-empty h2 {
+        color: #ffffff;
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+
+    .cart-empty p {
+        color: #a0a0b0;
+        margin-bottom: 30px;
+    }
+
+    .cart-empty .btn {
+        display: inline-block;
+        padding: 12px 30px;
+        background: var(--button-primary-bg);
+        color: var(--button-primary-text);
+        text-decoration: none;
+        border-radius: 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .cart-empty .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px var(--button-primary-bg);
+    }
+
+    .cart-content {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 30px;
+    }
+
+    .cart-items {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        overflow: hidden;
+    }
+
+    .cart-item {
+        display: grid;
+        grid-template-columns: 80px 1fr auto auto;
+        gap: 20px;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .cart-item:last-child {
+        border-bottom: none;
+    }
+
+    .cart-item-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #0a0f1f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cart-item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .cart-item-image i {
+        font-size: 2rem;
+        color: var(--header-accent);
+    }
+
+    .cart-item-info h3 {
+        color: #ffffff;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+    }
+
+    .cart-item-category {
+        color: var(--header-accent);
+        font-size: 0.8rem;
+    }
+
+    .cart-item-quantity {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .quantity-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .quantity-btn:hover {
+        background: var(--header-accent);
+        color: #000000;
+    }
+
+    .quantity-input {
+        width: 50px;
+        text-align: center;
+        background: transparent;
+        border: none;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .cart-item-price {
+        text-align: left;
+    }
+
+    .cart-item-price .price {
+        color: #ffffff;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .cart-item-price .unit {
+        color: #a0a0b0;
+        font-size: 0.8rem;
+        display: block;
+    }
+
+    .cart-item-remove {
+        color: #ff4444;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .cart-item-remove:hover {
+        transform: scale(1.1);
+    }
+
+    .cart-summary {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 25px;
+        position: sticky;
+        top: 100px;
+    }
+
+    .summary-title {
+        font-size: 1.3rem;
+        color: #ffffff;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        color: #a0a0b0;
+    }
+
+    .summary-row.total {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .summary-row.total span:last-child {
+        color: var(--header-accent);
+    }
+
+    .checkout-btn {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        background: var(--button-primary-bg);
+        color: var(--button-primary-text);
+        text-align: center;
+        text-decoration: none;
+        border-radius: 30px;
+        font-weight: 600;
+        margin-top: 25px;
+        transition: all 0.3s ease;
+    }
+
+    .checkout-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px var(--button-primary-bg);
+    }
+
+    @media (max-width: 992px) {
+        .cart-content { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+        .cart-item { 
+            grid-template-columns: 60px 1fr;
+            gap: 15px;
+        }
+        .cart-item-quantity { grid-column: 2; }
+        .cart-item-price { grid-column: 2; text-align: right; }
+        .cart-item-remove { position: absolute; top: 20px; left: 20px; }
+        .cart-item { position: relative; }
+    }
+</style>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h1 class="cart-title">سبد خرید <span>شما</span></h1>
+    </div>
+
+    {% if cart and cart.items.all %}
+    <div class="cart-content">
+        <div class="cart-items">
+            {% for item in cart.items.all %}
+            <div class="cart-item">
+                <div class="cart-item-image">
+                    {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                    {% else %}
+                    <i class="fas fa-box"></i>
+                    {% endif %}
+                </div>
+                <div class="cart-item-info">
+                    <h3>{{ item.product.name }}</h3>
+                    <div class="cart-item-category">{{ item.product.category.name }}</div>
+                </div>
+                <div class="cart-item-quantity">
+                    <form method="post" action="{% url 'shop:update_cart_item' item.id %}" style="display: flex; gap: 5px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="decrease">
+                        <button type="submit" class="quantity-btn">-</button>
+                    </form>
+                    <span class="quantity-input">{{ item.quantity }}</span>
+                    <form method="post" action="{% url 'shop:update_cart_item' item.id %}" style="display: flex; gap: 5px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="increase">
+                        <button type="submit" class="quantity-btn">+</button>
+                    </form>
+                </div>
+                <div class="cart-item-price">
+                    <span class="price">{{ item.total_price|floatformat:0 }}</span>
+                    <span class="unit">تومان</span>
+                </div>
+                <form method="post" action="{% url 'shop:update_cart_item' item.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="remove">
+                    <button type="submit" style="background: none; border: none; cursor: pointer;">
+                        <i class="fas fa-times cart-item-remove"></i>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="cart-summary">
+            <h3 class="summary-title">خلاصه سبد خرید</h3>
+            <div class="summary-row">
+                <span>تعداد کالاها</span>
+                <span>{{ cart.total_quantity }}</span>
+            </div>
+            <div class="summary-row">
+                <span>جمع کل</span>
+                <span>{{ cart.total_price|floatformat:0 }} تومان</span>
+            </div>
+            <div class="summary-row total">
+                <span>مبلغ قابل پرداخت</span>
+                <span>{{ cart.total_price|floatformat:0 }} تومان</span>
+            </div>
+            <a href="{% url 'shop:checkout' %}" class="checkout-btn">
+                <i class="fas fa-arrow-left"></i>
+                ادامه فرآیند خرید
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="cart-empty">
+        <div class="cart-empty-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h2>سبد خرید شما خالی است</h2>
+        <p>برای مشاهده محصولات بیشتر به صفحه محصولات مراجعه کنید</p>
+        <a href="{% url 'shop:category_list' %}" class="btn">مشاهده محصولات</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
