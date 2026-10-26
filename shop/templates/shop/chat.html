@@ -49,6 +49,12 @@
         display: flex;
         flex-direction: column;
         max-width: 80%;
+        animation: messageIn 0.3s ease;
+    }
+
+    @keyframes messageIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     .message.sent {
@@ -187,6 +193,12 @@
         box-shadow: 0 0 20px var(--button-primary-bg);
     }
 
+    .send-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
     .attachment-preview {
         margin-top: 10px;
         padding: 10px;
@@ -195,22 +207,6 @@
         display: flex;
         align-items: center;
         gap: 10px;
-    }
-
-    .attachment-preview i {
-        color: var(--header-accent);
-        font-size: 1.2rem;
-    }
-
-    .attachment-preview span {
-        flex: 1;
-        color: #ffffff;
-    }
-
-    .remove-attachment {
-        color: #ff4444;
-        cursor: pointer;
-        padding: 5px;
     }
 
     .empty-chat {
@@ -226,42 +222,49 @@
         opacity: 0.5;
     }
 
+    .typing-indicator {
+        display: none;
+        align-self: flex-start;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 18px;
+        border-bottom-left-radius: 4px;
+    }
+
+    .typing-indicator span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: var(--header-accent);
+        border-radius: 50%;
+        margin: 0 2px;
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+        30% { transform: translateY(-8px); opacity: 1; }
+    }
+
     @media (max-width: 768px) {
         .chat-container {
             height: calc(100vh - 120px);
             border-radius: 12px;
         }
-
         .message {
             max-width: 90%;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .message-form {
-            gap: 5px;
-        }
-
-        .send-btn {
-            width: 40px;
-            height: 40px;
-            font-size: 1rem;
-        }
-
-        .attach-btn {
-            font-size: 1.2rem;
-            padding: 5px;
         }
     }
 
     .chat-messages::-webkit-scrollbar {
         width: 6px;
     }
-
     .chat-messages::-webkit-scrollbar-track {
         background: rgba(255, 255, 255, 0.05);
     }
-
     .chat-messages::-webkit-scrollbar-thumb {
         background: var(--header-accent);
         border-radius: 3px;
@@ -276,7 +279,7 @@
 
     <div class="chat-messages" id="chatMessages">
         {% for message in chat_messages %}
-        <div class="message {% if message.is_admin %}received{% else %}sent{% endif %}">
+        <div class="message {% if message.is_admin %}received{% else %}sent{% endif %}" data-id="{{ message.id }}">
             <div class="message-bubble">
                 {% if message.message %}
                 <div class="message-text">{{ message.message }}</div>
@@ -305,7 +308,7 @@
             </div>
         </div>
         {% empty %}
-        <div class="empty-chat">
+        <div class="empty-chat" id="emptyChat">
             <i class="fas fa-comments"></i>
             <p>هنوز پیامی ارسال نشده است</p>
             <p style="font-size: 0.9rem; margin-top: 10px;">اولین پیام را شما بنویسید</p>
@@ -323,7 +326,7 @@
             </label>
             <input type="file" name="file" id="fileInput" accept="image/*,video/*" style="display: none;">
             
-            <button type="submit" class="send-btn">
+            <button type="submit" class="send-btn" id="sendBtn">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </form>
@@ -333,55 +336,228 @@
 </div>
 
 <script>
-    // اسکرول به پایین
-    function scrollToBottom() {
-        const messagesDiv = document.getElementById('chatMessages');
-        if (messagesDiv) {
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
+(function() {
+    'use strict';
+
+    const chatMessages = document.getElementById('chatMessages');
+    const messageForm = document.getElementById('messageForm');
+    const messageInput = document.getElementById('messageInput');
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('attachmentPreview');
+    const sendBtn = document.getElementById('sendBtn');
+
+    let lastMessageId = 0;
+    let isSending = false;
+    let pollInterval = null;
+
+    // پیدا کردن آخرین ID پیام
+    const existingMessages = chatMessages.querySelectorAll('.message[data-id]');
+    if (existingMessages.length > 0) {
+        lastMessageId = parseInt(existingMessages[existingMessages.length - 1].dataset.id) || 0;
     }
 
-    // اجرا بعد از لود صفحه
-    document.addEventListener('DOMContentLoaded', function() {
-        scrollToBottom();
-        
-        const textarea = document.getElementById('messageInput');
-        if (textarea) {
-            textarea.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
+    // اسکرول به پایین
+    function scrollToBottom(smooth = false) {
+        chatMessages.scrollTo({
+            top: chatMessages.scrollHeight,
+            behavior: smooth ? 'smooth' : 'auto'
+        });
+    }
+
+    // ساخت HTML پیام جدید
+    function createMessageHTML(msg) {
+        const messageClass = msg.is_admin ? 'received' : 'sent';
+        let mediaHTML = '';
+
+        if (msg.image_url) {
+            mediaHTML += `
+                <div class="message-media">
+                    <img src="${msg.image_url}" alt="تصویر" onclick="window.open(this.src)">
+                </div>`;
+        }
+        if (msg.video_url) {
+            mediaHTML += `
+                <div class="message-media">
+                    <video controls>
+                        <source src="${msg.video_url}">
+                    </video>
+                </div>`;
         }
 
-        const fileInput = document.getElementById('fileInput');
-        const preview = document.getElementById('attachmentPreview');
+        const textHTML = msg.message ? `<div class="message-text">${escapeHtml(msg.message)}</div>` : '';
+        const adminBadge = msg.is_admin ? '<span class="admin-badge">ادمین</span>' : '';
 
-        fileInput.addEventListener('change', function(e) {
-            if (this.files && this.files[0]) {
-                const file = this.files[0];
-                const fileType = file.type.split('/')[0];
-                const icon = fileType === 'image' ? 'fa-image' : 'fa-video';
-                
-                preview.style.display = 'flex';
-                preview.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 12px;">
-                        <i class="fas ${icon}" style="color: var(--header-accent);"></i>
-                        <span style="flex: 1; color: #fff;">${file.name}</span>
-                        <span onclick="removeFile()" style="color: #ff4444; cursor: pointer;">✕</span>
+        return `
+            <div class="message ${messageClass}" data-id="${msg.id}">
+                <div class="message-bubble">
+                    ${textHTML}
+                    ${mediaHTML}
+                    <div class="message-meta">
+                        <span>${msg.created_at}</span>
+                        ${adminBadge}
                     </div>
-                `;
+                </div>
+            </div>
+        `;
+    }
+
+    // جلوگیری از XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // دریافت پیام‌های جدید با AJAX
+    function fetchNewMessages() {
+        fetch('{% url "shop:chat_messages_api" %}?last_id=' + lastMessageId, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
             }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.messages && data.messages.length > 0) {
+                // حذف empty state
+                const emptyChat = document.getElementById('emptyChat');
+                if (emptyChat) emptyChat.remove();
+
+                data.messages.forEach(msg => {
+                    // جلوگیری از تکراری
+                    if (document.querySelector(`.message[data-id="${msg.id}"]`)) return;
+
+                    chatMessages.insertAdjacentHTML('beforeend', createMessageHTML(msg));
+                    lastMessageId = Math.max(lastMessageId, msg.id);
+                });
+
+                scrollToBottom(true);
+            }
+        })
+        .catch(err => console.warn('خطا در دریافت پیام‌ها:', err));
+    }
+
+    // ارسال پیام با AJAX
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (isSending) return;
+
+        const messageText = messageInput.value.trim();
+        const file = fileInput.files[0];
+
+        if (!messageText && !file) {
+            return;
+        }
+
+        isSending = true;
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        const formData = new FormData();
+        if (messageText) formData.append('message', messageText);
+        if (file) formData.append('file', file);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch('{% url "shop:chat_send_api" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.message) {
+                // حذف empty state
+                const emptyChat = document.getElementById('emptyChat');
+                if (emptyChat) emptyChat.remove();
+
+                // نمایش پیام ارسالی
+                chatMessages.insertAdjacentHTML('beforeend', createMessageHTML(data.message));
+                lastMessageId = Math.max(lastMessageId, data.message.id);
+                scrollToBottom(true);
+
+                // پاک کردن فرم
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                removeFile();
+            } else {
+                alert(data.error || 'خطا در ارسال پیام');
+            }
+        })
+        .catch(err => {
+            console.error('خطا:', err);
+            alert('خطا در ارتباط با سرور');
+        })
+        .finally(() => {
+            isSending = false;
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
         });
     });
 
-    function removeFile() {
-        document.getElementById('fileInput').value = '';
-        document.getElementById('attachmentPreview').style.display = 'none';
+    // فایل
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            const fileType = file.type.split('/')[0];
+            const icon = fileType === 'image' ? 'fa-image' : 'fa-video';
+
+            preview.style.display = 'flex';
+            preview.innerHTML = `
+                <div class="attachment-preview">
+                    <i class="fas ${icon}" style="color: var(--header-accent);"></i>
+                    <span style="flex: 1; color: #fff;">${file.name}</span>
+                    <span onclick="removeFile()" style="color: #ff4444; cursor: pointer;">✕</span>
+                </div>
+            `;
+        }
+    });
+
+    window.removeFile = function() {
+        fileInput.value = '';
+        preview.style.display = 'none';
+        preview.innerHTML = '';
+    };
+
+    // Enter برای ارسال (Shift+Enter برای خط جدید)
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            messageForm.dispatchEvent(new Event('submit'));
+        }
+    });
+
+    // تنظیم ارتفاع textarea
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+
+    // شروع polling - هر 3 ثانیه
+    function startPolling() {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(fetchNewMessages, 3000);
     }
 
-    // رفرش خودکار هر 10 ثانیه
-    setInterval(function() {
-        location.reload();
-    }, 10000);
+    // توقف وقتی تب مخفی است
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            if (pollInterval) clearInterval(pollInterval);
+        } else {
+            fetchNewMessages();
+            startPolling();
+        }
+    });
+
+    // شروع
+    scrollToBottom();
+    startPolling();
+
+    // اولین fetch بعد از 1 ثانیه
+    setTimeout(fetchNewMessages, 1000);
+
+})();
 </script>
 {% endblock %}

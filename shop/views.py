@@ -8,78 +8,26 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils import timezone
 from django.urls import reverse_lazy
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.db.models import Q, Count
+from django.views.decorators.http import require_GET, require_POST
 from datetime import timedelta
 from .models import *
 from .forms import *
 from .utils import send_order_telegram_message
 import json
 import re
-from django.http import JsonResponse, HttpResponse
 import os
-from django.http import HttpResponseForbidden
-from django.contrib.auth.decorators import user_passes_test
+import uuid
 from django.conf import settings
 
 
+# ==================== احراز هویت ====================
 
 def custom_logout_view(request):
     logout(request)
     messages.success(request, 'شما با موفقیت از حساب کاربری خود خارج شدید.')
     return redirect('shop:home')
-
-
-def home(request):
-    try:
-        categories = Category.objects.filter(is_active=True)[:8]
-        slider_items = Slider.objects.filter(is_active=True).order_by('-created_at')
-        products = Product.objects.filter(is_available=True).order_by('-created_at')[:8]
-        news = News.objects.filter(is_active=True).order_by('-created_at')[:4]
-        videos = Video.objects.filter(is_active=True).order_by('-created_at')[:6]
-        
-        context = {
-            'categories': categories,
-            'slider_items': slider_items,
-            'products': products,
-            'news': news,
-            'videos': videos,
-        }
-        return render(request, 'shop/home.html', context)
-    except Exception as e:
-        print(f"خطا در ویو home: {e}")
-        return render(request, 'shop/home.html', {
-            'categories': Category.objects.filter(is_active=True)[:8],
-            'slider_items': Slider.objects.filter(is_active=True).order_by('-created_at'),
-        })
-
-
-def category_list(request):
-    categories = Category.objects.filter(is_active=True)
-    return render(request, 'shop/category_list.html', {'categories': categories})
-
-
-def category_detail(request, slug):
-    category = get_object_or_404(Category, slug=slug, is_active=True)
-    products = Product.objects.filter(category=category, is_available=True)
-    return render(request, 'shop/category_detail.html', {
-        'category': category,
-        'products': products
-    })
-
-
-def game_list_view(request):
-    games = GameList.objects.filter(is_active=True)
-    return render(request, 'shop/game_list.html', {'games': games})
-
-
-def game_list_by_platform(request, platform):
-    games = GameList.objects.filter(platform=platform, is_active=True)
-    platform_display = dict(GameList.GAME_PLATFORMS).get(platform, '')
-    return render(request, 'shop/game_list.html', {
-        'games': games,
-        'platform': platform_display
-    })
 
 
 def register_view(request):
@@ -89,40 +37,41 @@ def register_view(request):
         if form.is_valid():
             try:
                 user = form.save()
-                settings = ReferralSettings.objects.first()
+                settings_obj = ReferralSettings.objects.first()
                 
                 referral_code = form.cleaned_data.get('referral_code')
-                if referral_code and settings and settings.is_active:
+                if referral_code and settings_obj and settings_obj.is_active:
                     try:
                         referrer_profile = UserProfile.objects.get(referral_code=referral_code)
                         
-                        if settings.referrer_discount_amount > 0:
+                        discount_code = None
+                        if settings_obj.referrer_discount_amount > 0:
                             discount_code = DiscountCode.objects.create(
                                 user=referrer_profile.user,
                                 code=f"REF-{referral_code}-{user.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}",
-                                discount_type=settings.referrer_discount_type,
-                                amount=settings.referrer_discount_amount,
-                                expires_at=timezone.now() + timedelta(days=settings.discount_expiry_days)
+                                discount_type=settings_obj.referrer_discount_type,
+                                amount=settings_obj.referrer_discount_amount,
+                                expires_at=timezone.now() + timedelta(days=settings_obj.discount_expiry_days)
                             )
                         
-                        if settings.referrer_credit_amount > 0:
-                            referrer_profile.credits += settings.referrer_credit_amount
+                        if settings_obj.referrer_credit_amount > 0:
+                            referrer_profile.credits += settings_obj.referrer_credit_amount
                             referrer_profile.save()
                         
-                        if settings.new_user_discount_amount > 0:
-                            new_user_discount = DiscountCode.objects.create(
+                        if settings_obj.new_user_discount_amount > 0:
+                            DiscountCode.objects.create(
                                 user=user,
                                 code=f"WELCOME-{user.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}",
-                                discount_type=settings.new_user_discount_type,
-                                amount=settings.new_user_discount_amount,
-                                expires_at=timezone.now() + timedelta(days=settings.discount_expiry_days)
+                                discount_type=settings_obj.new_user_discount_type,
+                                amount=settings_obj.new_user_discount_amount,
+                                expires_at=timezone.now() + timedelta(days=settings_obj.discount_expiry_days)
                             )
-                            messages.success(request, f'یک کد تخفیف {settings.new_user_discount_amount}{"%" if settings.new_user_discount_type == "percentage" else "تومان"} برای شما ایجاد شد!')
+                            messages.success(request, f'یک کد تخفیف {settings_obj.new_user_discount_amount}{"%" if settings_obj.new_user_discount_type == "percentage" else "تومان"} برای شما ایجاد شد!')
                         
                         ReferralLog.objects.create(
                             referrer=referrer_profile.user,
                             new_user=user,
-                            discount_code=discount_code if 'discount_code' in locals() else None
+                            discount_code=discount_code
                         )
                         
                         messages.success(request, 'کد تخفیف برای معرف شما ایجاد شد!')
@@ -168,6 +117,139 @@ def custom_login_view(request):
     return render(request, 'shop/login.html', {'form': form})
 
 
+# ==================== صفحات اصلی ====================
+
+def home(request):
+    try:
+        categories = Category.objects.filter(is_active=True)[:8]
+        slider_items = Slider.objects.filter(is_active=True).order_by('-created_at')
+        products = Product.objects.filter(is_available=True).order_by('-created_at')[:8]
+        news = News.objects.filter(is_active=True).order_by('-created_at')[:4]
+        videos = Video.objects.filter(is_active=True).order_by('-created_at')[:6]
+        
+        context = {
+            'categories': categories,
+            'slider_items': slider_items,
+            'products': products,
+            'news': news,
+            'videos': videos,
+        }
+        return render(request, 'shop/home.html', context)
+    except Exception as e:
+        print(f"خطا در ویو home: {e}")
+        return render(request, 'shop/home.html', {
+            'categories': Category.objects.filter(is_active=True)[:8],
+            'slider_items': Slider.objects.filter(is_active=True).order_by('-created_at'),
+        })
+
+
+def about(request):
+    """صفحه درباره ما - نمایش محتوای قابل ویرایش"""
+    about_content = AboutUs.objects.filter(is_active=True).first()
+    if not about_content:
+        about_content = AboutUs.objects.create(
+            title="درباره ما",
+            content="لطفاً محتوای درباره ما را از پنل ادمین وارد کنید."
+        )
+    return render(request, 'shop/about.html', {'about': about_content})
+
+
+def terms_view(request):
+    return render(request, 'shop/terms.html')
+
+
+# ==================== دسته‌بندی و محصولات ====================
+
+def category_list(request):
+    categories = Category.objects.filter(is_active=True)
+    return render(request, 'shop/category_list.html', {'categories': categories})
+
+
+def category_detail(request, slug):
+    category = get_object_or_404(Category, slug=slug, is_active=True)
+    products = Product.objects.filter(category=category, is_available=True)
+    return render(request, 'shop/category_detail.html', {
+        'category': category,
+        'products': products
+    })
+
+
+def product_detail(request, id):
+    product = get_object_or_404(Product, id=id, is_available=True)
+    related_products = Product.objects.filter(
+        category=product.category, 
+        is_available=True
+    ).exclude(id=id)[:4]
+    return render(request, 'shop/product_detail.html', {
+        'product': product,
+        'related_products': related_products
+    })
+
+
+# ==================== بازی‌ها ====================
+
+def game_list_view(request):
+    games = GameList.objects.filter(is_active=True)
+    return render(request, 'shop/game_list.html', {'games': games})
+
+
+def game_list_by_platform(request, platform):
+    games = GameList.objects.filter(platform=platform, is_active=True)
+    platform_display = dict(GameList.GAME_PLATFORMS).get(platform, '')
+    return render(request, 'shop/game_list.html', {
+        'games': games,
+        'platform': platform_display
+    })
+
+
+def game_detail_view(request, game_id):
+    """نمایش جزئیات کامل یک بازی"""
+    game = get_object_or_404(GameList, id=game_id, is_active=True)
+    
+    related_products = Product.objects.filter(
+        game_list=game, 
+        is_available=True
+    ).select_related('category')[:8]
+    
+    similar_games = GameList.objects.filter(
+        platform=game.platform,
+        is_active=True
+    ).exclude(id=game.id)[:6]
+    
+    game_features = []
+    for feature_key in game.get_features_list():
+        for choice in GameList.GAME_FEATURES:
+            if choice[0] == feature_key:
+                game_features.append({
+                    'key': feature_key,
+                    'name': choice[1]
+                })
+                break
+    
+    context = {
+        'game': game,
+        'related_products': related_products,
+        'similar_games': similar_games,
+        'game_features': game_features,
+    }
+    
+    return render(request, 'shop/game_detail.html', context)
+
+
+def simple_game_detail(request, game_id):
+    game = GameList.objects.filter(id=game_id).first()
+    if game:
+        return HttpResponse(
+            f"<h1>{game.name}</h1>"
+            f"<p>پلتفرم: {game.get_platform_display()}</p>"
+            f"<p>ID: {game.id}</p>"
+        )
+    else:
+        return HttpResponse("<h1>بازی پیدا نشد</h1>")
+
+
+# ==================== پروفایل کاربر ====================
+
 @login_required
 def profile_view(request):
     user_profile = UserProfile.objects.get(user=request.user)
@@ -182,7 +264,6 @@ def profile_view(request):
         user_profile.postal_code = request.POST.get('postal_code', '')
         user_profile.save()
         
-        # به‌روزرسانی first_name و last_name در مدل User
         if request.POST.get('full_name'):
             name_parts = request.POST.get('full_name', '').strip().split(' ', 1)
             request.user.first_name = name_parts[0]
@@ -200,14 +281,7 @@ def profile_view(request):
     })
 
 
-def product_detail(request, id):
-    product = get_object_or_404(Product, id=id, is_available=True)
-    related_products = Product.objects.filter(category=product.category, is_available=True).exclude(id=id)[:4]
-    return render(request, 'shop/product_detail.html', {
-        'product': product,
-        'related_products': related_products
-    })
-
+# ==================== سبد خرید ====================
 
 @login_required
 def add_to_cart(request, product_id):
@@ -228,7 +302,7 @@ def add_to_cart(request, product_id):
         cart_item.save()
         message = f'تعداد {product.name} در سبد خرید افزایش یافت'
     except CartItem.DoesNotExist:
-        cart_item = CartItem.objects.create(cart=cart, product=product, quantity=quantity)
+        CartItem.objects.create(cart=cart, product=product, quantity=quantity)
         message = f'{product.name} به سبد خرید اضافه شد'
     
     messages.success(request, message)
@@ -272,7 +346,6 @@ def checkout_step1(request):
         messages.warning(request, 'سبد خرید شما خالی است')
         return redirect('shop:cart')
     
-    # بررسی وجود سفارش ناتمام
     draft_order = Order.objects.filter(user=request.user, status='draft', cart=cart).first()
     
     initial_data = {}
@@ -292,13 +365,12 @@ def checkout_step1(request):
                 'address': profile.address,
                 'postal_code': profile.postal_code,
             }
-        except:
+        except Exception:
             pass
     
     if request.method == 'POST':
         form = CheckoutStep1Form(request.POST)
         if form.is_valid():
-            # ایجاد یا به‌روزرسانی سفارش ناتمام
             if not draft_order:
                 draft_order = Order.objects.create(
                     user=request.user,
@@ -341,15 +413,12 @@ def checkout_step2(request):
     
     initial_total = cart.total_price()
     discount_amount = 0
-    discount_code_obj = None
     
-    # اعمال کد تخفیف اگر قبلاً ذخیره شده باشد
     if draft_order.discount_code:
-        discount_code_obj = draft_order.discount_code
-        if discount_code_obj.discount_type == 'percentage':
-            discount_amount = (initial_total * discount_code_obj.amount) / 100
+        if draft_order.discount_code.discount_type == 'percentage':
+            discount_amount = (initial_total * draft_order.discount_code.amount) / 100
         else:
-            discount_amount = discount_code_obj.amount
+            discount_amount = draft_order.discount_code.amount
         final_amount = max(initial_total - discount_amount, 0)
     else:
         final_amount = initial_total
@@ -361,7 +430,6 @@ def checkout_step2(request):
             
             if discount_code:
                 draft_order.discount_code = discount_code
-                # محاسبه مبلغ نهایی
                 if discount_code.discount_type == 'percentage':
                     discount_amount = (initial_total * discount_code.amount) / 100
                 else:
@@ -371,7 +439,6 @@ def checkout_step2(request):
                 draft_order.save()
                 messages.success(request, 'کد تخفیف با موفقیت اعمال شد.')
             else:
-                # حذف کد تخفیف اگر کاربر آن را پاک کرده باشد
                 draft_order.discount_code = None
                 draft_order.final_amount = initial_total
                 draft_order.save()
@@ -382,7 +449,6 @@ def checkout_step2(request):
             'discount_code': draft_order.discount_code.code if draft_order.discount_code else ''
         })
     
-    # دریافت تنظیمات سایت
     site_settings = SiteSettings.objects.first()
     min_amount_for_shaba = site_settings.min_amount_for_shaba if site_settings else 10000000
     payment_method = 'shaba' if final_amount >= min_amount_for_shaba else 'card'
@@ -418,7 +484,6 @@ def checkout_step3(request):
         messages.warning(request, 'سبد خرید شما خالی است')
         return redirect('shop:cart')
     
-    # محاسبه مبالغ
     initial_total = cart.total_price()
     discount_amount = 0
     
@@ -431,7 +496,6 @@ def checkout_step3(request):
     draft_order.final_amount = final_amount
     draft_order.save()
     
-    # دریافت تنظیمات سایت
     site_settings = SiteSettings.objects.first()
     min_amount_for_shaba = site_settings.min_amount_for_shaba if site_settings else 10000000
     payment_method = 'shaba' if final_amount >= min_amount_for_shaba else 'card'
@@ -439,35 +503,29 @@ def checkout_step3(request):
     if request.method == 'POST':
         form = CheckoutStep3Form(request.POST, request.FILES)
         if form.is_valid():
-            # تغییر وضعیت سفارش از draft به pending
             draft_order.status = 'pending'
             draft_order.save()
             
-            # ایجاد شماره سفارش
             if not draft_order.order_number:
                 draft_order.order_number = f"ORD-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
                 draft_order.save()
             
-            # ذخیره رسید پرداخت
             PaymentReceipt.objects.create(
                 order=draft_order,
                 receipt_image=form.cleaned_data['receipt_image'],
                 payment_method=payment_method
             )
             
-            # علامت استفاده از کد تخفیف
             if draft_order.discount_code:
                 draft_order.discount_code.is_used = True
                 draft_order.discount_code.save()
             
-            # ارسال پیام به تلگرام
             try:
                 send_order_telegram_message(draft_order)
                 messages.info(request, 'اطلاعات سفارش به پشتیبانی ارسال شد.')
             except Exception as e:
                 print(f"خطا در ارسال به تلگرام: {e}")
             
-            # خالی کردن سبد خرید
             cart.items.all().delete()
             
             messages.success(request, f'سفارش شما با شماره {draft_order.order_number} ثبت شد. پس از تایید پرداخت، سفارش شما ارسال خواهد شد.')
@@ -531,7 +589,7 @@ def validate_discount_code(request):
                     'valid': True,
                     'discount_type': discount.discount_type,
                     'amount': float(discount.amount),
-                    'message': f'کد تخفیف معتبر است'
+                    'message': 'کد تخفیف معتبر است'
                 })
             except DiscountCode.DoesNotExist:
                 return JsonResponse({
@@ -543,6 +601,8 @@ def validate_discount_code(request):
     
     return JsonResponse({'valid': False, 'message': 'درخواست نامعتبر'})
 
+
+# ==================== سفارشات ====================
 
 @login_required
 def order_detail(request, order_id):
@@ -586,105 +646,7 @@ def continue_order(request, order_id):
     return redirect('shop:checkout_step1')
 
 
-@login_required
-def chat_view(request):
-    """چت برای کاربران عادی - فقط با ادمین"""
-    if request.user.is_staff:
-        return redirect('shop:admin_chat')
-    
-    if request.method == 'POST':
-        form = ChatMessageForm(request.POST, request.FILES)
-        if form.is_valid():
-            chat_message = form.save(commit=False)
-            chat_message.user = request.user
-            chat_message.is_admin = False
-            chat_message.save()
-            messages.success(request, 'پیام شما با موفقیت ارسال شد.')
-            return redirect('shop:chat')
-    else:
-        form = ChatMessageForm()
-    
-    chat_messages = ChatMessage.objects.filter(user=request.user).order_by('created_at')
-    
-    return render(request, 'shop/chat.html', {
-        'chat_messages': chat_messages,
-        'form': form
-    })
-
-
-@login_required
-def admin_chat_view(request):
-    """پنل چت مخصوص ادمین"""
-    if not request.user.is_staff:
-        messages.error(request, 'شما دسترسی به این صفحه را ندارید.')
-        return redirect('shop:home')
-    
-    users_with_messages = User.objects.filter(
-        chat_messages__isnull=False,
-        is_staff=False
-    ).distinct().order_by('-date_joined')
-    
-    if not users_with_messages.exists():
-        users_with_messages = User.objects.filter(is_staff=False).order_by('-date_joined')
-    
-    users_list = []
-    for user in users_with_messages:
-        try:
-            profile = user.profile
-            phone = profile.phone if profile and profile.phone else 'ثبت نشده'
-        except:
-            phone = 'ثبت نشده'
-        
-        last_message = ChatMessage.objects.filter(user=user).order_by('-created_at').first()
-        unread_count = ChatMessage.objects.filter(
-            user=user, 
-            is_admin=False, 
-            is_read=False
-        ).count()
-        
-        users_list.append({
-            'user': user,
-            'phone': phone,
-            'last_message': last_message,
-            'unread_count': unread_count
-        })
-    
-    selected_user_id = request.GET.get('user_id')
-    selected_user = None
-    user_messages = []
-    form = ChatMessageForm()
-    
-    if selected_user_id:
-        try:
-            selected_user = User.objects.get(id=selected_user_id)
-            user_messages = ChatMessage.objects.filter(user=selected_user).order_by('created_at')
-            
-            ChatMessage.objects.filter(
-                user=selected_user,
-                is_admin=False,
-                is_read=False
-            ).update(is_read=True)
-            
-            if request.method == 'POST':
-                form = ChatMessageForm(request.POST, request.FILES)
-                if form.is_valid():
-                    chat_message = form.save(commit=False)
-                    chat_message.user = selected_user
-                    chat_message.is_admin = True
-                    chat_message.save()
-                    messages.success(request, f'پیام به {selected_user.username} ارسال شد.')
-                    return redirect(f'{request.path}?user_id={selected_user_id}')
-        except User.DoesNotExist:
-            messages.error(request, 'کاربر مورد نظر یافت نشد.')
-            return redirect('shop:admin_chat')
-    
-    return render(request, 'shop/admin_chat.html', {
-        'users': users_list,
-        'selected_user': selected_user,
-        'user_messages': user_messages,
-        'form': form
-    })
-
+# ==================== جستجو ====================
 
 def search_view(request):
     query = request.GET.get('q', '').strip()
@@ -750,16 +712,283 @@ def search_results_view(request):
     })
 
 
-def about(request):
-    """صفحه درباره ما - نمایش محتوای قابل ویرایش"""
-    about_content = AboutUs.objects.filter(is_active=True).first()
-    if not about_content:
-        about_content = AboutUs.objects.create(
-            title="درباره ما",
-            content="لطفاً محتوای درباره ما را از پنل ادمین وارد کنید."
-        )
-    return render(request, 'shop/about.html', {'about': about_content})
+# ==================== چت و پشتیبانی ====================
 
+@login_required
+def chat_view(request):
+    """چت برای کاربران عادی - فقط با ادمین"""
+    if request.user.is_staff:
+        return redirect('shop:admin_chat')
+    
+    chat_messages = ChatMessage.objects.filter(user=request.user).order_by('created_at')
+    
+    return render(request, 'shop/chat.html', {
+        'chat_messages': chat_messages,
+    })
+
+
+@login_required
+@require_GET
+def chat_messages_api(request):
+    """دریافت پیام‌های جدید کاربر با AJAX"""
+    last_id = request.GET.get('last_id', 0)
+    try:
+        last_id = int(last_id)
+    except (ValueError, TypeError):
+        last_id = 0
+
+    messages_qs = ChatMessage.objects.filter(
+        user=request.user,
+        id__gt=last_id
+    ).order_by('created_at')
+
+    # علامت‌گذاری پیام‌های ادمین به عنوان خوانده شده
+    ChatMessage.objects.filter(
+        user=request.user,
+        is_admin=True,
+        is_read=False
+    ).update(is_read=True)
+
+    messages_data = []
+    for msg in messages_qs:
+        messages_data.append({
+            'id': msg.id,
+            'message': msg.message or '',
+            'is_admin': msg.is_admin,
+            'image_url': msg.image.url if msg.image else None,
+            'video_url': msg.video.url if msg.video else None,
+            'created_at': timezone.localtime(msg.created_at).strftime('%H:%M'),
+        })
+
+    return JsonResponse({'messages': messages_data})
+
+
+@login_required
+@require_POST
+def chat_send_api(request):
+    """ارسال پیام کاربر با AJAX"""
+    message_text = request.POST.get('message', '').strip()
+    file = request.FILES.get('file')
+
+    if not message_text and not file:
+        return JsonResponse({'success': False, 'error': 'پیام خالی است'}, status=400)
+
+    chat_message = ChatMessage(
+        user=request.user,
+        message=message_text or None,
+        is_admin=False,
+    )
+
+    if file:
+        if file.content_type.startswith('image/'):
+            chat_message.image = file
+        elif file.content_type.startswith('video/'):
+            chat_message.video = file
+
+    chat_message.save()
+
+    return JsonResponse({
+        'success': True,
+        'message': {
+            'id': chat_message.id,
+            'message': chat_message.message or '',
+            'is_admin': False,
+            'image_url': chat_message.image.url if chat_message.image else None,
+            'video_url': chat_message.video.url if chat_message.video else None,
+            'created_at': timezone.localtime(chat_message.created_at).strftime('%H:%M'),
+        }
+    })
+
+
+@login_required
+def admin_chat_view(request):
+    """پنل چت مخصوص ادمین"""
+    if not request.user.is_staff:
+        messages.error(request, 'شما دسترسی به این صفحه را ندارید.')
+        return redirect('shop:home')
+    
+    users_with_messages = User.objects.filter(
+        chat_messages__isnull=False,
+        is_staff=False
+    ).distinct().order_by('-date_joined')
+    
+    if not users_with_messages.exists():
+        users_with_messages = User.objects.filter(is_staff=False).order_by('-date_joined')
+    
+    users_list = []
+    for user in users_with_messages:
+        try:
+            profile = user.profile
+            phone = profile.phone if profile and profile.phone else 'ثبت نشده'
+        except Exception:
+            phone = 'ثبت نشده'
+        
+        last_message = ChatMessage.objects.filter(user=user).order_by('-created_at').first()
+        unread_count = ChatMessage.objects.filter(
+            user=user, 
+            is_admin=False, 
+            is_read=False
+        ).count()
+        
+        users_list.append({
+            'user': user,
+            'phone': phone,
+            'last_message': last_message,
+            'unread_count': unread_count
+        })
+    
+    selected_user_id = request.GET.get('user_id')
+    selected_user = None
+    user_messages = []
+    
+    if selected_user_id:
+        try:
+            selected_user = User.objects.get(id=selected_user_id)
+            user_messages = ChatMessage.objects.filter(user=selected_user).order_by('created_at')
+            
+            ChatMessage.objects.filter(
+                user=selected_user,
+                is_admin=False,
+                is_read=False
+            ).update(is_read=True)
+        except User.DoesNotExist:
+            messages.error(request, 'کاربر مورد نظر یافت نشد.')
+            return redirect('shop:admin_chat')
+    
+    return render(request, 'shop/admin_chat.html', {
+        'users': users_list,
+        'selected_user': selected_user,
+        'user_messages': user_messages,
+    })
+
+
+@login_required
+def admin_chat_messages_api(request):
+    """دریافت پیام‌های جدید کاربر برای ادمین"""
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'دسترسی ندارید'}, status=403)
+
+    user_id = request.GET.get('user_id')
+    last_id = request.GET.get('last_id', 0)
+
+    if not user_id:
+        return JsonResponse({'messages': []})
+
+    try:
+        last_id = int(last_id)
+    except (ValueError, TypeError):
+        last_id = 0
+
+    target_user = get_object_or_404(User, id=user_id)
+
+    messages_qs = ChatMessage.objects.filter(
+        user=target_user,
+        id__gt=last_id
+    ).order_by('created_at')
+
+    # علامت‌گذاری پیام‌های کاربر به عنوان خوانده شده
+    ChatMessage.objects.filter(
+        user=target_user,
+        is_admin=False,
+        is_read=False
+    ).update(is_read=True)
+
+    messages_data = []
+    for msg in messages_qs:
+        messages_data.append({
+            'id': msg.id,
+            'message': msg.message or '',
+            'is_admin': msg.is_admin,
+            'image_url': msg.image.url if msg.image else None,
+            'video_url': msg.video.url if msg.video else None,
+            'created_at': timezone.localtime(msg.created_at).strftime('%H:%M'),
+        })
+
+    return JsonResponse({'messages': messages_data})
+
+
+@login_required
+@require_POST
+def admin_chat_send_api(request):
+    """ارسال پیام ادمین با AJAX"""
+    if not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'دسترسی ندارید'}, status=403)
+
+    user_id = request.POST.get('user_id')
+    message_text = request.POST.get('message', '').strip()
+    file = request.FILES.get('file')
+
+    if not user_id:
+        return JsonResponse({'success': False, 'error': 'کاربر انتخاب نشده'}, status=400)
+
+    if not message_text and not file:
+        return JsonResponse({'success': False, 'error': 'پیام خالی است'}, status=400)
+
+    target_user = get_object_or_404(User, id=user_id)
+
+    chat_message = ChatMessage(
+        user=target_user,
+        message=message_text or None,
+        is_admin=True,
+    )
+
+    if file:
+        if file.content_type.startswith('image/'):
+            chat_message.image = file
+        elif file.content_type.startswith('video/'):
+            chat_message.video = file
+
+    chat_message.save()
+
+    return JsonResponse({
+        'success': True,
+        'message': {
+            'id': chat_message.id,
+            'message': chat_message.message or '',
+            'is_admin': True,
+            'image_url': chat_message.image.url if chat_message.image else None,
+            'video_url': chat_message.video.url if chat_message.video else None,
+            'created_at': timezone.localtime(chat_message.created_at).strftime('%H:%M'),
+        }
+    })
+
+
+@staff_member_required
+def admin_send_message(request, user_id=None):
+    users = User.objects.filter(is_active=True).exclude(is_staff=True)
+    selected_user = None
+    
+    if user_id:
+        selected_user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        form = ChatMessageForm(request.POST, request.FILES)
+        user_id = request.POST.get('user_id')
+        selected_user = get_object_or_404(User, id=user_id) if user_id else None
+        
+        if form.is_valid() and selected_user:
+            chat_message = form.save(commit=False)
+            chat_message.user = selected_user
+            chat_message.is_admin = True
+            chat_message.save()
+            messages.success(request, f'پیام به {selected_user.username} ارسال شد.')
+            return redirect('shop:admin_send_message', user_id=selected_user.id)
+    else:
+        form = ChatMessageForm()
+    
+    messages_list = []
+    if selected_user:
+        messages_list = ChatMessage.objects.filter(user=selected_user).order_by('-created_at')[:50]
+    
+    return render(request, 'shop/admin_send_message.html', {
+        'users': users,
+        'selected_user': selected_user,
+        'form': form,
+        'messages': messages_list
+    })
+
+
+# ==================== کلاس‌های مبتنی بر ویو ====================
 
 class StaffRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -848,118 +1077,44 @@ class NewsUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-def terms_view(request):
-    return render(request, 'shop/terms.html')
-
+# ==================== تنظیمات دعوت ====================
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def referral_settings_view(request):
-    settings = ReferralSettings.objects.first()
-    if not settings:
-        settings = ReferralSettings.objects.create()
+    settings_obj = ReferralSettings.objects.first()
+    if not settings_obj:
+        settings_obj = ReferralSettings.objects.create()
     
     if request.method == 'POST':
-        settings.is_active = request.POST.get('is_active') == 'on'
-        settings.referrer_discount_type = request.POST.get('referrer_discount_type')
-        settings.referrer_discount_amount = request.POST.get('referrer_discount_amount')
-        settings.referrer_credit_amount = request.POST.get('referrer_credit_amount')
-        settings.new_user_discount_type = request.POST.get('new_user_discount_type')
-        settings.new_user_discount_amount = request.POST.get('new_user_discount_amount')
-        settings.discount_expiry_days = request.POST.get('discount_expiry_days')
-        settings.save()
+        settings_obj.is_active = request.POST.get('is_active') == 'on'
+        settings_obj.referrer_discount_type = request.POST.get('referrer_discount_type')
+        settings_obj.referrer_discount_amount = request.POST.get('referrer_discount_amount')
+        settings_obj.referrer_credit_amount = request.POST.get('referrer_credit_amount')
+        settings_obj.new_user_discount_type = request.POST.get('new_user_discount_type')
+        settings_obj.new_user_discount_amount = request.POST.get('new_user_discount_amount')
+        settings_obj.discount_expiry_days = request.POST.get('discount_expiry_days')
+        settings_obj.save()
         
         messages.success(request, 'تنظیمات با موفقیت به‌روزرسانی شد.')
         return redirect('shop:referral_settings')
     
-    return render(request, 'shop/referral_settings.html', {'settings': settings})
+    return render(request, 'shop/referral_settings.html', {'settings': settings_obj})
 
 
-@staff_member_required
-def admin_send_message(request, user_id=None):
-    users = User.objects.filter(is_active=True).exclude(is_staff=True)
-    selected_user = None
-    
-    if user_id:
-        selected_user = get_object_or_404(User, id=user_id)
-    
-    if request.method == 'POST':
-        form = ChatMessageForm(request.POST, request.FILES)
-        user_id = request.POST.get('user_id')
-        selected_user = get_object_or_404(User, id=user_id) if user_id else None
-        
-        if form.is_valid() and selected_user:
-            chat_message = form.save(commit=False)
-            chat_message.user = selected_user
-            chat_message.is_admin = True
-            chat_message.save()
-            messages.success(request, f'پیام به {selected_user.username} ارسال شد.')
-            return redirect('shop:admin_send_message', user_id=selected_user.id)
-    else:
-        form = ChatMessageForm()
-    
-    messages_list = []
-    if selected_user:
-        messages_list = ChatMessage.objects.filter(user=selected_user).order_by('-created_at')[:50]
-    
-    return render(request, 'shop/admin_send_message.html', {
-        'users': users,
-        'selected_user': selected_user,
-        'form': form,
-        'messages': messages_list
-    })
-
-
-def game_detail_view(request, game_id):
-    """نمایش جزئیات کامل یک بازی"""
-    game = get_object_or_404(GameList, id=game_id, is_active=True)
-    
-    related_products = Product.objects.filter(
-        game_list=game, 
-        is_available=True
-    ).select_related('category')[:8]
-    
-    similar_games = GameList.objects.filter(
-        platform=game.platform,
-        is_active=True
-    ).exclude(id=game.id)[:6]
-    
-    game_features = []
-    for feature_key in game.get_features_list():
-        for choice in GameList.GAME_FEATURES:
-            if choice[0] == feature_key:
-                game_features.append({
-                    'key': feature_key,
-                    'name': choice[1]
-                })
-                break
-    
-    context = {
-        'game': game,
-        'related_products': related_products,
-        'similar_games': similar_games,
-        'game_features': game_features,
-    }
-    
-    return render(request, 'shop/game_detail.html', context)
-
-
-def simple_game_detail(request, game_id):
-    game = GameList.objects.filter(id=game_id).first()
-    if game:
-        return HttpResponse(f"<h1>{game.name}</h1><p>پلتفرم: {game.get_platform_display()}</p><p>ID: {game.id}</p>")
-    else:
-        return HttpResponse("<h1>بازی پیدا نشد</h1>")
+# ==================== پنل مخفی ====================
 
 ADMIN_LOCK_FILE = os.path.join(settings.BASE_DIR, '.admin_locked')
+
 
 def is_admin_locked():
     """بررسی می‌کند که آیا پنل ادمین قفل شده است یا نه"""
     return os.path.exists(ADMIN_LOCK_FILE)
 
+
 def admin_access_middleware(get_response):
     """
-    میدلور برای بستن دسترسی به ادمین - این را باید در settings.py ثبت کنی
+    میدلور برای بستن دسترسی به ادمین
     """
     def middleware(request):
         if request.path.startswith('/admin/') and not request.user.is_superuser:
@@ -968,36 +1123,31 @@ def admin_access_middleware(get_response):
         return get_response(request)
     return middleware
 
+
 def hidden_panel(request):
     """
-    صفحه مخفی که فقط تو می‌تونی ببینی - آدرس: /hidden-panel/
-    رمز عبور: JOKER2024 (می‌تونی عوض کنی)
+    صفحه مخفی برای قفل/باز کردن پنل ادمین
+    آدرس: /hidden-panel/
     """
-    # رمز مخفی - اینو فقط خودت می‌دونی
-    SECRET_KEY = "JOKER2024"  # این رو به چیز دیگه‌ای تغییر بده
+    SECRET_KEY = "JOKER2024"
     
-    # بررسی رمز از طریق هدر یا کوکی
     auth_key = request.GET.get('key') or request.COOKIES.get('secret_key')
     
     if auth_key != SECRET_KEY:
-        # صفحه فیک 404 برای گمراه کردن
         return render(request, 'shop/fake_404.html', status=404)
     
-    # وضعیت فعلی قفل
     is_locked = is_admin_locked()
     
     if request.method == 'POST':
         action = request.POST.get('action')
         
         if action == 'lock_admin':
-            # قفل کردن پنل ادمین
             with open(ADMIN_LOCK_FILE, 'w') as f:
                 f.write(f'locked_at_{timezone.now().isoformat()}')
-            messages.success(request, '✅ پنل ادمین با موفقیت قفل شد! حالا هرکس بره تو ادمین صفحه ترسناک می‌بینه.')
+            messages.success(request, '✅ پنل ادمین با موفقیت قفل شد!')
             return redirect('/hidden-panel/?key=' + SECRET_KEY)
         
         elif action == 'unlock_admin':
-            # باز کردن قفل
             if os.path.exists(ADMIN_LOCK_FILE):
                 os.remove(ADMIN_LOCK_FILE)
             messages.success(request, '✅ قفل پنل ادمین باز شد.')
@@ -1007,7 +1157,7 @@ def hidden_panel(request):
         'is_locked': is_locked,
         'secret_key': SECRET_KEY,
     })
-    response.set_cookie('secret_key', SECRET_KEY, max_age=3600*24*30)  # یک ماه
+    response.set_cookie('secret_key', SECRET_KEY, max_age=3600 * 24 * 30)
     return response
 
 

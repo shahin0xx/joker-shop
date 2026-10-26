@@ -73,4 +73,9 @@ urlpatterns = [
     # تنظیمات دعوت
     path('admin-panel/referral-settings/', views.referral_settings_view, name='referral_settings'),
     path('hidden-panel/', views.hidden_panel, name='hidden_panel'),
+    path('api/chat/messages/', views.chat_messages_api, name='chat_messages_api'),
+    path('api/chat/send/', views.chat_send_api, name='chat_send_api'),
+    path('api/admin-chat/messages/', views.admin_chat_messages_api, name='admin_chat_messages_api'),
+    path('api/admin-chat/send/', views.admin_chat_send_api, name='admin_chat_send_api'),
+
 ]

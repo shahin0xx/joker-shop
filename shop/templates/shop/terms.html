@@ -1,0 +1,887 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}قوانین و مقررات | JOKERPLAYSTATION نیشابور{% endblock %}
+
+{% block meta_description %}قوانین و مقررات خرید از فروشگاه JOKERPLAYSTATION نیشابور شامل شرایط ثبت سفارش، پرداخت، ارسال، گارانتی، مرجوعی و بازگشت کالا.{% endblock %}
+
+{% block meta_keywords %}قوانین و مقررات, شرایط خرید, گارانتی, مرجوعی, بازگشت کالا, JOKERPLAYSTATION, نیشابور{% endblock %}
+
+{% block content %}
+<style>
+    /* ===== هدر صفحه ===== */
+    .terms-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .terms-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 15px;
+        position: relative;
+        display: inline-block;
+    }
+
+    .terms-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 3px;
+        background: var(--header-accent);
+        border-radius: 2px;
+    }
+
+    .terms-subtitle {
+        color: #a0a0b0;
+        font-size: 1rem;
+        margin-top: 20px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.8;
+    }
+
+    .terms-updated {
+        display: inline-block;
+        margin-top: 15px;
+        padding: 6px 18px;
+        background: rgba(var(--header-accent-rgb), 0.1);
+        border: 1px solid rgba(var(--header-accent-rgb), 0.3);
+        border-radius: 20px;
+        color: var(--header-accent);
+        font-size: 0.8rem;
+    }
+
+    /* ===== فهرست مطالب (TOC) ===== */
+    .toc-box {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 25px 30px;
+        margin-bottom: 40px;
+    }
+
+    .toc-title {
+        color: var(--header-accent);
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .toc-list {
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 10px;
+    }
+
+    .toc-list li a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #c0d0e0;
+        text-decoration: none;
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .toc-list li a:hover {
+        background: rgba(var(--header-accent-rgb), 0.1);
+        color: var(--header-accent);
+        transform: translateX(-5px);
+    }
+
+    .toc-list li a i {
+        color: var(--header-accent);
+        font-size: 0.7rem;
+    }
+
+    /* ===== بخش‌های اصلی ===== */
+    .terms-section {
+        background: rgba(20, 25, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 35px;
+        margin-bottom: 30px;
+        scroll-margin-top: 100px;
+        transition: all 0.3s ease;
+    }
+
+    .terms-section:hover {
+        border-color: rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    .section-icon {
+        width: 55px;
+        height: 55px;
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #000000;
+        flex-shrink: 0;
+        box-shadow: 0 5px 15px rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    .section-header h2 {
+        color: #ffffff;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .section-number {
+        color: var(--header-accent);
+        font-size: 0.85rem;
+        display: block;
+        margin-bottom: 3px;
+        font-weight: 500;
+    }
+
+    .terms-content {
+        color: #c0d0e0;
+        line-height: 1.9;
+        font-size: 0.95rem;
+    }
+
+    .terms-content p {
+        margin-bottom: 15px;
+    }
+
+    .terms-content strong {
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .terms-content ul,
+    .terms-content ol {
+        margin: 15px 0;
+        padding-right: 25px;
+    }
+
+    .terms-content li {
+        margin-bottom: 12px;
+        line-height: 1.8;
+    }
+
+    .terms-content li::marker {
+        color: var(--header-accent);
+    }
+
+    /* ===== باکس هشدار ===== */
+    .warning-box {
+        background: rgba(255, 165, 0, 0.08);
+        border-right: 4px solid #ffa500;
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 20px 0;
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .warning-box i {
+        color: #ffa500;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        margin-top: 3px;
+    }
+
+    .warning-box div {
+        color: #ffcc80;
+        font-size: 0.9rem;
+        line-height: 1.8;
+    }
+
+    .warning-box strong {
+        color: #ffa500;
+    }
+
+    /* ===== باکس اطلاعات ===== */
+    .info-box {
+        background: rgba(var(--header-accent-rgb), 0.05);
+        border-right: 4px solid var(--header-accent);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 20px 0;
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .info-box i {
+        color: var(--header-accent);
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        margin-top: 3px;
+    }
+
+    .info-box div {
+        color: #c0d0e0;
+        font-size: 0.9rem;
+        line-height: 1.8;
+    }
+
+    .info-box strong {
+        color: var(--header-accent);
+    }
+
+    /* ===== باکس خطر ===== */
+    .danger-box {
+        background: rgba(255, 68, 68, 0.08);
+        border-right: 4px solid #ff4444;
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 20px 0;
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .danger-box i {
+        color: #ff4444;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        margin-top: 3px;
+    }
+
+    .danger-box div {
+        color: #ffb0b0;
+        font-size: 0.9rem;
+        line-height: 1.8;
+    }
+
+    .danger-box strong {
+        color: #ff4444;
+    }
+
+    /* ===== جدول ===== */
+    .terms-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .terms-table th {
+        background: rgba(var(--header-accent-rgb), 0.15);
+        color: var(--header-accent);
+        padding: 15px;
+        text-align: right;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border-bottom: 1px solid rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    .terms-table td {
+        padding: 15px;
+        color: #c0d0e0;
+        font-size: 0.9rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        line-height: 1.7;
+    }
+
+    .terms-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .terms-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* ===== کارت‌های تماس ===== */
+    .contact-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 25px;
+    }
+
+    .contact-card {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
+    }
+
+    .contact-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--header-accent);
+        background: rgba(var(--header-accent-rgb), 0.05);
+    }
+
+    .contact-card i {
+        font-size: 1.8rem;
+        color: var(--header-accent);
+        margin-bottom: 12px;
+    }
+
+    .contact-card .label {
+        color: #a0a0b0;
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+
+    .contact-card .value {
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 600;
+        direction: ltr;
+        font-family: monospace;
+    }
+
+    /* ===== دکمه بازگشت ===== */
+    .back-section {
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 30px;
+        background: transparent;
+        border: 1px solid var(--header-accent);
+        color: var(--header-accent);
+        text-decoration: none;
+        border-radius: 40px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .back-btn:hover {
+        background: var(--header-accent);
+        color: #000000;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(var(--header-accent-rgb), 0.3);
+    }
+
+    /* ===== ریسپانسیو ===== */
+    @media (max-width: 992px) {
+        .terms-title { font-size: 2rem; }
+        .terms-section { padding: 25px; }
+        .section-header h2 { font-size: 1.3rem; }
+    }
+
+    @media (max-width: 768px) {
+        .terms-title { font-size: 1.8rem; }
+        .terms-subtitle { font-size: 0.9rem; }
+        .terms-section { padding: 20px; }
+        .section-icon { width: 45px; height: 45px; font-size: 1.2rem; }
+        .section-header h2 { font-size: 1.15rem; }
+        .terms-content { font-size: 0.9rem; }
+        .toc-list { grid-template-columns: 1fr; }
+        .terms-table { font-size: 0.8rem; }
+        .terms-table th, 
+        .terms-table td { padding: 10px; }
+    }
+
+    @media (max-width: 576px) {
+        .terms-title { font-size: 1.5rem; }
+        .terms-section { padding: 18px; }
+        .section-header { gap: 10px; }
+        .section-icon { width: 40px; height: 40px; font-size: 1rem; }
+        .section-header h2 { font-size: 1rem; }
+        .warning-box, .info-box, .danger-box { padding: 14px; }
+        .warning-box i, .info-box i, .danger-box i { font-size: 1.1rem; }
+    }
+</style>
+
+<div class="terms-container">
+    <!-- هدر -->
+    <div class="terms-header">
+        <h1 class="terms-title">قوانین و مقررات</h1>
+        <p class="terms-subtitle">
+            لطفاً قبل از ثبت سفارش در فروشگاه JOKERPLAYSTATION، قوانین و مقررات زیر را به دقت مطالعه فرمایید. 
+            ثبت سفارش به منزله پذیرش کامل این قوانین است.
+        </p>
+        <span class="terms-updated">
+            <i class="fas fa-sync-alt"></i>
+            آخرین بروزرسانی: فروردین ۱۴۰۵
+        </span>
+    </div>
+
+    <!-- فهرست مطالب -->
+    <div class="toc-box">
+        <h3 class="toc-title">
+            <i class="fas fa-list-ul"></i>
+            فهرست مطالب
+        </h3>
+        <ul class="toc-list">
+            <li><a href="#section-1"><i class="fas fa-chevron-left"></i> کلیات و پذیرش قوانین</a></li>
+            <li><a href="#section-2"><i class="fas fa-chevron-left"></i> ثبت‌نام و حساب کاربری</a></li>
+            <li><a href="#section-3"><i class="fas fa-chevron-left"></i> ثبت سفارش و تأیید آن</a></li>
+            <li><a href="#section-4"><i class="fas fa-chevron-left"></i> قیمت‌ها و روش‌های پرداخت</a></li>
+            <li><a href="#section-5"><i class="fas fa-chevron-left"></i> ارسال و تحویل سفارش</a></li>
+            <li><a href="#section-6"><i class="fas fa-chevron-left"></i> گارانتی و اصالت کالا</a></li>
+            <li><a href="#section-7"><i class="fas fa-chevron-left"></i> مرجوعی و بازگشت کالا</a></li>
+            <li><a href="#section-8"><i class="fas fa-chevron-left"></i> کد تخفیف و اعتبار</a></li>
+            <li><a href="#section-9"><i class="fas fa-chevron-left"></i> حریم خصوصی کاربران</a></li>
+            <li><a href="#section-10"><i class="fas fa-chevron-left"></i> مسئولیت‌ها و محدودیت‌ها</a></li>
+            <li><a href="#section-11"><i class="fas fa-chevron-left"></i> تغییرات قوانین</a></li>
+            <li><a href="#section-12"><i class="fas fa-chevron-left"></i> تماس با ما</a></li>
+        </ul>
+    </div>
+
+    <!-- ۱. کلیات -->
+    <div class="terms-section" id="section-1">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-file-contract"></i></div>
+            <div>
+                <span class="section-number">ماده ۱</span>
+                <h2>کلیات و پذیرش قوانین</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p>
+                <strong>۱-۱.</strong> فروشگاه اینترنتی <strong>JOKERPLAYSTATION نیشابور</strong> (که از این پس «فروشگاه» نامیده می‌شود) 
+                فعالیت خود را در زمینه فروش بازی‌ها، کنسول‌ها و لوازم جانبی پلی استیشن و سایر محصولات گیمینگ آغاز نموده است.
+            </p>
+            <p>
+                <strong>۱-۲.</strong> تمامی کاربران موظف هستند پیش از استفاده از خدمات فروشگاه، این قوانین را به طور کامل مطالعه کنند. 
+                ثبت سفارش، ایجاد حساب کاربری یا استفاده از هر یک از خدمات فروشگاه به منزله <strong>پذیرش کامل این قوانین</strong> است.
+            </p>
+            <p>
+                <strong>۱-۳.</strong> این قوانین بر اساس قوانین جمهوری اسلامی ایران، قانون تجارت الکترونیک و قانون حمایت از حقوق مصرف‌کننده تنظیم شده است.
+            </p>
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    در صورت وجود هرگونه ابهام در مفاد این قوانین، کاربر موظف است قبل از خرید با پشتیبانی فروشگاه تماس حاصل نماید.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ۲. ثبت‌نام -->
+    <div class="terms-section" id="section-2">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-user-plus"></i></div>
+            <div>
+                <span class="section-number">ماده ۲</span>
+                <h2>ثبت‌نام و حساب کاربری</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p><strong>۲-۱.</strong> برای ثبت سفارش، کاربر باید ابتدا در فروشگاه ثبت‌نام کرده و حساب کاربری ایجاد نماید.</p>
+            <p><strong>۲-۲.</strong> اطلاعات وارد شده در فرم ثبت‌نام (نام، نام خانوادگی، شماره تماس، ایمیل، آدرس) باید <strong>صحیح و واقعی</strong> باشد.</p>
+            <p><strong>۲-۳.</strong> کاربر مسئول حفظ امنیت نام کاربری و رمز عبور خود است و هرگونه فعالیتی که با حساب کاربری وی انجام شود، مسئولیت آن بر عهده کاربر است.</p>
+            <p><strong>۲-۴.</strong> در صورت مشاهده هرگونه تخلف، جعل هویت یا ارائه اطلاعات نادرست، فروشگاه حق <strong>مسدود کردن حساب کاربری</strong> را بدون اطلاع قبلی دارد.</p>
+            <p><strong>۲-۵.</strong> کاربران زیر ۱۸ سال باید با نظارت والدین یا سرپرست قانونی خود خرید نمایند.</p>
+            <ul>
+                <li>نام کاربری فقط می‌تواند شامل حروف انگلیسی، اعداد و زیرخط باشد.</li>
+                <li>شماره تماس باید ۱۱ رقم و با ۰۹ شروع شود.</li>
+                <li>هر شماره تماس فقط برای یک حساب کاربری قابل استفاده است.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ۳. ثبت سفارش -->
+    <div class="terms-section" id="section-3">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-shopping-cart"></i></div>
+            <div>
+                <span class="section-number">ماده ۳</span>
+                <h2>ثبت سفارش و تأیید آن</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p><strong>۳-۱.</strong> فرآیند خرید در فروشگاه به صورت <strong>چند مرحله‌ای</strong> انجام می‌شود:</p>
+            <ol>
+                <li>انتخاب محصول و افزودن به سبد خرید</li>
+                <li>ورود اطلاعات گیرنده (نام، تلفن، آدرس، کد پستی)</li>
+                <li>اعمال کد تخفیف (اختیاری)</li>
+                <li>پرداخت مبلغ و آپلود تصویر رسید</li>
+                <li>تأیید نهایی سفارش توسط پشتیبانی</li>
+            </ol>
+            <p><strong>۳-۲.</strong> پس از ثبت سفارش، یک <strong>شماره سفارش</strong> برای کاربر ایجاد می‌شود که پیگیری سفارش از طریق آن امکان‌پذیر است.</p>
+            <p><strong>۳-۳.</strong> سفارش‌های ناتمام (draft) تا <strong>۲۴ ساعت</strong> در سیستم نگهداری می‌شوند. پس از این مدت، سفارش به‌صورت خودکار لغو می‌شود.</p>
+            <p><strong>۳-۴.</strong> فروشگاه این حق را دارد که در صورت <strong>ناموجود بودن</strong> محصول، سفارش را لغو و مبلغ را به کاربر بازگرداند.</p>
+            <div class="warning-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>توجه:</strong> تا زمانی که وضعیت سفارش در پنل کاربری به «<strong>پرداخت شده</strong>» یا «<strong>تکمیل شده</strong>» تغییر نکند، 
+                    سفارش قطعی تلقی نمی‌شود.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ۴. قیمت و پرداخت -->
+    <div class="terms-section" id="section-4">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-credit-card"></i></div>
+            <div>
+                <span class="section-number">ماده ۴</span>
+                <h2>قیمت‌ها و روش‌های پرداخت</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p><strong>۴-۱.</strong> تمامی قیمت‌ها به <strong>تومان</strong> و شامل مالیات بر ارزش افزوده (در صورت لزوم) می‌باشد.</p>
+            <p><strong>۴-۲.</strong> فروشگاه این حق را دارد که قیمت‌ها را بدون اطلاع قبلی تغییر دهد، اما قیمت زمان ثبت سفارش <strong>قطعی و غیرقابل تغییر</strong> است.</p>
+            <p><strong>۴-۳.</strong> روش‌های پرداخت:</p>
+            <table class="terms-table">
+                <thead>
+                    <tr>
+                        <th>روش پرداخت</th>
+                        <th>شرایط</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><i class="fas fa-credit-card" style="color: var(--header-accent);"></i> کارت به کارت</td>
+                        <td>برای مبالغ کمتر از حد مجاز (به صورت پیش‌فرض ۱۰ میلیون تومان)</td>
+                    </tr>
+                    <tr>
+                        <td><i class="fas fa-university" style="color: var(--header-accent);"></i> شماره شبا</td>
+                        <td>برای مبالغ بالاتر از حد مجاز</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p><strong>۴-۴.</strong> پس از واریز مبلغ، کاربر موظف است <strong>تصویر رسید پرداخت</strong> را در پنل کاربری آپلود کند.</p>
+            <p><strong>۴-۵.</strong> پرداخت‌ها پس از بررسی توسط پشتیبانی تأیید می‌شوند. زمان بررسی معمولاً <strong>حداکثر ۲۴ ساعت کاری</strong> است.</p>
+            <div class="danger-box">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    <strong>هشدار امنیتی:</strong> شماره کارت و شماره شبای صحیح فقط از طریق سایت رسمی فروشگاه اعلام می‌شود. 
+                    در صورت دریافت هرگونه پیام یا تماس مشکوک، به هیچ عنوان مبلغی واریز نکنید.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ۵. ارسال و تحویل -->
+    <div class="terms-section" id="section-5">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-truck"></i></div>
+            <div>
+                <span class="section-number">ماده ۵</span>
+                <h2>ارسال و تحویل سفارش</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p><strong>۵-۱.</strong> ارسال محصولات به دو صورت انجام می‌شود:</p>
+            <ul>
+                <li><strong>تحویل حضوری:</strong> در محل فروشگاه (نیشابور، خیابان خیام، نبش خیام ۲۲) - <strong>رایگان</strong></li>
+                <li><strong>ارسال با پیک یا پست:</strong> هزینه بر عهده مشتری و بر اساس تعرفه‌های جاری</li>
+            </ul>
+            <p><strong>۵-۲.</strong> زمان تحویل سفارش:</p>
+            <table class="terms-table">
+                <thead>
+                    <tr>
+                        <th>مقصد</th>
+                        <th>زمان تحویل</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>نیشابور</td>
+                        <td>حداکثر <strong>۲۴ ساعت</strong> پس از تأیید پرداخت</td>
+                    </tr>
+                    <tr>
+                        <td>سایر شهرهای استان</td>
+                        <td>۲ تا ۳ روز کاری</td>
+                    </tr>
+                    <tr>
+                        <td>سایر استان‌ها</td>
+                        <td>۳ تا ۵ روز کاری</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p><strong>۵-۳.</strong> مسئولیت صحت آدرس و اطلاعات گیرنده بر عهده کاربر است. در صورت ارسال به آدرس اشتباه، هزینه ارسال مجدد بر عهده کاربر خواهد بود.</p>
+            <p><strong>۵-۴.</strong> در صورت عدم تحویل سفارش به دلیل عدم حضور گیرنده، سفارش به فروشگاه بازگشت داده شده و کاربر باید برای هماهنگی مجدد با پشتیبانی تماس بگیرد.</p>
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    کاربر موظف است هنگام تحویل، بسته را <strong>در حضور مأمور پست یا پیک</strong> بازرسی نماید. در صورت مشاهده آسیب، مراتب را همان لحظه اطلاع دهید.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ۶. گارانتی -->
+    <div class="terms-section" id="section-6">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-shield-alt"></i></div>
+            <div>
+                <span class="section-number">ماده ۶</span>
+                <h2>گارانتی و اصالت کالا</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p><strong>۶-۱.</strong> تمامی محصولات فروشگاه <strong>اصل و اورجینال</strong> بوده و دارای گارانتی معتبر می‌باشند.</p>
+            <p><strong>۶-۲.</strong> مدت گارانتی محصولات:</p>
+            <ul>
+                <li><strong>کنسول‌های پلی استیشن:</strong> ۱۲ ماه گارانتی شرکتی</li>
+                <li><strong>دسته‌های بازی (DualSense):</strong> ۶ ماه گارانتی</li>
+                <li><strong>بازی‌های فیزیکی:</strong> فقط تضمین سالم بودن دیسک در زمان تحویل</li>
+                <li><strong>لوازم جانبی:</strong> ۳ تا ۶ ماه بر اساس نوع محصول</li>
+            </ul>
+            <p><strong>۶-۳.</strong> گارانتی شامل موارد زیر <strong>نمی‌شود</strong>:</p>
+            <ul>
+                <li>آسیب فیزیکی ناشی از ضربه، شکستگی یا نفوذ مایعات</li>
+                <li>دستکاری یا باز کردن دستگاه توسط افراد غیرمجاز</li>
+                <li>استفاده نادرست یا خارج از دستورالعمل سازنده</li>
+                <li>آسیب ناشی از نوسانات برق یا اتصال به منبع نامناسب</li>
+                <li>خرابی نرم‌افزاری ناشی از نصب برنامه‌های غیرمجاز</li>
+            </ul>
+            <p><strong>۶-۴.</strong> برای استفاده از گارانتی، ارائه <strong>فاکتور خرید</strong> الزامی است.</p>
+            <div class="warning-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>توجه:</strong> در صورت باز کردن دستگاه توسط کاربر، گارانتی <strong>کاملاً باطل</strong> می‌شود.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ۷. مرجوعی -->
+    <div class="terms-section" id="section-7">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-undo-alt"></i></div>
+            <div>
+                <span class="section-number">ماده ۷</span>
+                <h2>مرجوعی و بازگشت کالا</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p><strong>۷-۱.</strong> کاربر می‌تواند تا <strong>۷ روز</strong> پس از دریافت کالا، درخواست مرجوعی ثبت کند.</p>
+            <p><strong>۷-۲.</strong> شرایط پذیرش مرجوعی:</p>
+            <ul>
+                <li>کالا در <strong>بسته‌بندی اصلی</strong> و سالم باشد.</li>
+                <li>تمام لوازم همراه (کابل، دسته، دفترچه راهنما و...) موجود باشد.</li>
+                <li>فاکتور خرید ارائه شود.</li>
+                <li>کالا استفاده نشده و آسیبی ندیده باشد.</li>
+            </ul>
+            <p><strong>۷-۳.</strong> موارد <strong>غیرقابل مرجوعی</strong>:</p>
+            <ul>
+                <li>بازی‌های فیزیکی که <strong>پلمب آن‌ها باز شده</strong> باشد.</li>
+                <li>کارت‌های اعتباری و گیفت‌کارت‌ها (PlayStation Store Card و...)</li>
+                <li>محصولات سفارشی‌سازی شده</li>
+                <li>کالاهایی که به دلیل استفاده، آسیب دیده‌اند</li>
+            </ul>
+            <p><strong>۷-۴.</strong> مراحل مرجوعی:</p>
+            <ol>
+                <li>ثبت درخواست از طریق پنل کاربری یا تماس با پشتیبانی</li>
+                <li>تأیید درخواست توسط کارشناس فروشگاه</li>
+                <li>ارسال کالا به آدرس فروشگاه (هزینه ارسال بر عهده خریدار است، مگر در صورت مغایرت کالا)</li>
+                <li>بررسی کالا توسط کارشناس فنی</li>
+                <li>بازگشت مبلغ به حساب کاربری یا شماره کارت اعلامی حداکثر تا <strong>۷۲ ساعت کاری</strong></li>
+            </ol>
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    در صورت <strong>مغایرت کالا</strong> یا <strong>خرابی در زمان تحویل</strong>، هزینه ارسال مرجوعی بر عهده فروشگاه است.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ۸. کد تخفیف -->
+    <div class="terms-section" id="section-8">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-tags"></i></div>
+            <div>
+                <span class="section-number">ماده ۸</span>
+                <h2>کد تخفیف و اعتبار</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p><strong>۸-۱.</strong> کدهای تخفیف ممکن است به صورت <strong>درصدی</strong> یا <strong>مبلغ ثابت</strong> باشند.</p>
+            <p><strong>۸-۲.</strong> هر کد تخفیف دارای <strong>تاریخ انقضا</strong> است و پس از آن قابل استفاده نیست.</p>
+            <p><strong>۸-۳.</strong> هر کد تخفیف فقط <strong>یک بار</strong> و توسط <strong>کاربر مشخص</strong> قابل استفاده است.</p>
+            <p><strong>۸-۴.</strong> کدهای تخفیف <strong>با یکدیگر قابل جمع نیستند</strong> و در هر سفارش فقط یک کد اعمال می‌شود.</p>
+            <p><strong>۸-۵.</strong> سیستم دعوت به دوستان:</p>
+            <ul>
+                <li>هر کاربر دارای یک <strong>کد معرف</strong> اختصاصی است.</li>
+                <li>با معرفی دوستان، به ازای هر ثبت‌نام موفق، پاداش (تخفیف یا اعتبار) دریافت می‌کنید.</li>
+                <li>پاداش‌ها پس از <strong>تأیید پرداخت اولین سفارش</strong> کاربر جدید قابل استفاده می‌شوند.</li>
+            </ul>
+            <p><strong>۸-۶.</strong> فروشگاه حق <strong>لغو یا باطل کردن</strong> کدهای تخفیف در صورت سوءاستفاده را دارد.</p>
+        </div>
+    </div>
+
+    <!-- ۹. حریم خصوصی -->
+    <div class="terms-section" id="section-9">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-user-shield"></i></div>
+            <div>
+                <span class="section-number">ماده ۹</span>
+                <h2>حریم خصوصی کاربران</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p><strong>۹-۱.</strong> اطلاعات شخصی کاربران شامل نام، شماره تماس، آدرس، ایمیل و کد پستی فقط برای <strong>پردازش سفارش</strong> استفاده می‌شود.</p>
+            <p><strong>۹-۲.</strong> فروشگاه متعهد است اطلاعات کاربران را <strong>محرمانه</strong> نگه دارد و در اختیار اشخاص ثالث قرار ندهد، مگر در موارد قانونی.</p>
+            <p><strong>۹-۳.</strong> اطلاعات پرداخت (شماره کارت و رمز) هرگز توسط فروشگاه ذخیره نمی‌شود.</p>
+            <p><strong>۹-۴.</strong> کاربر می‌تواند در هر زمان درخواست <strong>حذف حساب کاربری</strong> خود را از طریق پشتیبانی ارائه دهد.</p>
+            <div class="info-box">
+                <i class="fas fa-lock"></i>
+                <div>
+                    ارتباط شما با سایت از طریق پروتکل <strong>HTTPS</strong> رمزنگاری می‌شود و اطلاعات شما در برابر دسترسی غیرمجاز محفوظ است.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ۱۰. مسئولیت‌ها -->
+    <div class="terms-section" id="section-10">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-balance-scale"></i></div>
+            <div>
+                <span class="section-number">ماده ۱۰</span>
+                <h2>مسئولیت‌ها و محدودیت‌ها</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p><strong>۱۰-۱.</strong> فروشگاه در قبال خسارات ناشی از <strong>استفاده نادرست</strong> از محصولات مسئولیتی ندارد.</p>
+            <p><strong>۱۰-۲.</strong> مسئولیت حفظ اطلاعات ورود به حساب کاربری کاملاً بر عهده کاربر است.</p>
+            <p><strong>۱۰-۳.</strong> فروشگاه در قبال <strong>قطعی اینترنت</strong>، <strong>اختلالات مخابراتی</strong> یا <strong>حوادث قهری</strong> مسئولیتی نمی‌پذیرد.</p>
+            <p><strong>۱۰-۴.</strong> در صورت مشاهده هرگونه <strong>تخلف</strong>، <strong>سوءاستفاده</strong> یا <strong>رفتار غیرمحترمانه</strong> با پشتیبانی، فروشگاه حق پیگیری قانونی را برای خود محفوظ می‌دارد.</p>
+            <p><strong>۱۰-۵.</strong> کاربران موظف به رعایت <strong>قوانین جمهوری اسلامی ایران</strong> و <strong>قوانین تجارت الکترونیک</strong> هستند.</p>
+        </div>
+    </div>
+
+    <!-- ۱۱. تغییرات -->
+    <div class="terms-section" id="section-11">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-sync"></i></div>
+            <div>
+                <span class="section-number">ماده ۱۱</span>
+                <h2>تغییرات قوانین</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p><strong>۱۱-۱.</strong> فروشگاه این حق را دارد که در هر زمان قوانین و مقررات خود را <strong>بروزرسانی</strong> کند.</p>
+            <p><strong>۱۱-۲.</strong> تغییرات از لحظه <strong>انتشار در سایت</strong> لازم‌الاجرا خواهند بود.</p>
+            <p><strong>۱۱-۳.</strong> کاربران موظف هستند به صورت دوره‌ای این صفحه را مطالعه کنند. ادامه استفاده از خدمات به منزله پذیرش قوانین جدید است.</p>
+            <p><strong>۱۱-۴.</strong> در صورت تغییرات <strong>اساسی</strong>، فروشگاه از طریق پیامک یا ایمیل به کاربران اطلاع‌رسانی خواهد کرد.</p>
+        </div>
+    </div>
+
+    <!-- ۱۲. تماس با ما -->
+    <div class="terms-section" id="section-12">
+        <div class="section-header">
+            <div class="section-icon"><i class="fas fa-headset"></i></div>
+            <div>
+                <span class="section-number">ماده ۱۲</span>
+                <h2>تماس با ما</h2>
+            </div>
+        </div>
+        <div class="terms-content">
+            <p>
+                در صورت وجود هرگونه سؤال، ابهام یا شکایت در خصوص قوانین و مقررات فروشگاه، 
+                می‌توانید از طریق راه‌های زیر با ما در تماس باشید:
+            </p>
+            
+            <div class="contact-cards">
+                <a href="tel:{{ site_settings.phone1 }}" class="contact-card">
+                    <i class="fas fa-phone-alt"></i>
+                    <div class="label">تلفن فروشگاه</div>
+                    <div class="value">{{ site_settings.phone1 }}</div>
+                </a>
+                <a href="tel:{{ site_settings.mobile }}" class="contact-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <div class="label">موبایل</div>
+                    <div class="value">{{ site_settings.mobile }}</div>
+                </a>
+                <a href="mailto:{{ site_settings.email }}" class="contact-card">
+                    <i class="fas fa-envelope"></i>
+                    <div class="label">ایمیل</div>
+                    <div class="value">{{ site_settings.email }}</div>
+                </a>
+                <a href="{% url 'shop:chat' %}" class="contact-card">
+                    <i class="fas fa-comments"></i>
+                    <div class="label">پشتیبانی آنلاین</div>
+                    <div class="value">چت زنده</div>
+                </a>
+            </div>
+
+            <p style="margin-top: 25px;">
+                <i class="fas fa-map-marker-alt" style="color: var(--header-accent);"></i>
+                <strong>آدرس فروشگاه:</strong> 
+                {{ site_settings.address_line1 }}
+                {% if site_settings.address_line2 %}، {{ site_settings.address_line2 }}{% endif %}، 
+                {{ site_settings.address_city }}، {{ site_settings.address_state }}
+            </p>
+        </div>
+    </div>
+
+    <!-- دکمه بازگشت -->
+    <div class="back-section">
+        <a href="{% url 'shop:home' %}" class="back-btn">
+            <i class="fas fa-arrow-right"></i>
+            بازگشت به صفحه اصلی
+        </a>
+    </div>
+</div>
+
+<script>
+    // اسکرول نرم به بخش‌ها
+    document.querySelectorAll('.toc-list a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const target = document.querySelector(targetId);
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // هایلایت بخش فعال هنگام اسکرول
+    const sections = document.querySelectorAll('.terms-section');
+    const tocLinks = document.querySelectorAll('.toc-list a');
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (window.pageYOffset >= sectionTop - 150) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        tocLinks.forEach(link => {
+            link.style.background = '';
+            link.style.color = '';
+            if (link.getAttribute('href') === '#' + current) {
+                link.style.background = 'rgba(var(--header-accent-rgb), 0.1)';
+                link.style.color = 'var(--header-accent)';
+            }
+        });
+    });
+</script>
+{% endblock %}

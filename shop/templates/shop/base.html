@@ -89,6 +89,7 @@
             --header-bg: {{ site_settings.header_bg|default:'#0A0F1F' }};
             --header-text: {{ site_settings.header_text|default:'#FFFFFF' }};
             --header-accent: {{ site_settings.header_accent|default:'#00FFFF' }};
+            --header-accent-rgb: {{ site_settings.get_header_accent_rgb }};
             
             --nav-bg: {{ site_settings.nav_bg|default:'#1A1F2F' }};
             --nav-text: {{ site_settings.nav_text|default:'#FFFFFF' }};
@@ -143,6 +144,7 @@
             font-size: 16px;
         }
 
+        /* ==================== پس‌زمینه ==================== */
         .cyber-background {
             position: fixed;
             top: 0;
@@ -178,6 +180,7 @@
             z-index: -1;
         }
 
+        /* ==================== لودینگ ==================== */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -264,6 +267,7 @@
             66% { text-shadow: 0 0 5px var(--loading-3); }
         }
 
+        /* ==================== هدر ==================== */
         .cyber-header {
             position: fixed;
             top: 0;
@@ -326,6 +330,7 @@
             white-space: nowrap;
         }
 
+        /* ==================== منوی اصلی ==================== */
         .nav-menu {
             display: flex;
             gap: 5px;
@@ -361,27 +366,53 @@
             box-shadow: 0 5px 15px var(--nav-hover);
         }
 
+        /* ==================== زیرمنو ==================== */
         .dropdown-menu {
             position: absolute;
-            top: 100%;
+            top: calc(100% + 8px);
             right: 0;
             min-width: 200px;
             background: var(--dropdown-bg);
             border: 2px solid var(--header-accent);
             border-radius: 10px;
-            margin-top: 5px;
+            margin-top: 0;
             opacity: 0;
             visibility: hidden;
-            transform: translateY(-5px);
-            transition: all 0.3s;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
             z-index: 1001;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
         }
 
-        .nav-item:hover .dropdown-menu {
+        /* باز شدن با کلاس active */
+        .nav-item.open .dropdown-menu {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .nav-item.open .nav-link .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .nav-link .fa-chevron-down {
+            transition: transform 0.3s ease;
+        }
+
+        /* روی دسکتاپ hover هم کار کنه */
+        @media (min-width: 993px) {
+            .nav-item.has-dropdown:hover .dropdown-menu {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+
+            .nav-item.has-dropdown:hover .nav-link .fa-chevron-down {
+                transform: rotate(180deg);
+            }
         }
 
         .dropdown-item {
@@ -406,6 +437,92 @@
             padding-right: 16px;
         }
 
+        /* ==================== Mega Dropdown ==================== */
+        .dropdown-menu.mega-dropdown {
+            min-width: 620px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            right: 0;
+            left: auto;
+        }
+
+        .dropdown-column {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 160px;
+        }
+
+        .dropdown-header {
+            color: var(--header-accent);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid var(--header-accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dropdown-header i {
+            font-size: 0.9rem;
+        }
+
+        .dropdown-group-title {
+            color: #8090A0;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 6px 12px 4px;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .dropdown-menu.mega-dropdown .dropdown-item {
+            padding: 7px 12px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border-bottom: none;
+            transition: all 0.25s ease;
+        }
+
+        .dropdown-menu.mega-dropdown .dropdown-item i {
+            font-size: 0.85rem;
+            color: var(--header-accent);
+            width: 18px;
+            text-align: center;
+        }
+
+        .dropdown-menu.mega-dropdown .dropdown-item:hover {
+            background: var(--dropdown-hover);
+            color: #000;
+            padding-right: 18px;
+            transform: translateX(-3px);
+        }
+
+        .dropdown-menu.mega-dropdown .dropdown-item:hover i {
+            color: #000;
+        }
+
+        .dropdown-item-highlight {
+            background: rgba(var(--header-accent-rgb), 0.1);
+            border: 1px solid var(--header-accent) !important;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .dropdown-item-highlight:hover {
+            background: var(--header-accent) !important;
+            color: #000 !important;
+            box-shadow: 0 3px 12px rgba(var(--header-accent-rgb), 0.4);
+        }
+
+        /* ==================== دکمه‌های کاربر ==================== */
         .user-actions {
             display: flex;
             gap: 5px;
@@ -462,6 +579,7 @@
             margin-right: 3px;
         }
 
+        /* ==================== دکمه موبایل ==================== */
         .mobile-menu-btn {
             display: none;
             background: none;
@@ -472,11 +590,12 @@
             padding: 5px;
         }
 
+        /* ==================== منوی موبایل ==================== */
         .mobile-menu {
             position: fixed;
             top: 0;
             right: -100%;
-            width: 260px;
+            width: 280px;
             height: 100vh;
             background: var(--dropdown-bg);
             z-index: 2000;
@@ -533,6 +652,54 @@
             transform: translateX(-3px);
         }
 
+        /* زیرمنوی موبایل */
+        .mobile-submenu {
+            padding: 5px 0 5px 15px;
+            margin-top: 5px;
+            border-right: 2px solid var(--header-accent);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 800px; }
+        }
+
+        .mobile-submenu-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            color: #c0d0e0;
+            text-decoration: none;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            transition: all 0.25s ease;
+        }
+
+        .mobile-submenu-item:hover {
+            background: rgba(var(--header-accent-rgb), 0.1);
+            color: var(--header-accent);
+            padding-right: 18px;
+        }
+
+        .mobile-submenu-item i {
+            color: var(--header-accent);
+            font-size: 0.75rem;
+            width: 15px;
+            text-align: center;
+        }
+
+        .mobile-menu-toggle {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .mobile-menu-toggle.active .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        /* ==================== محتوای اصلی ==================== */
         .main-content {
             padding-top: 70px;
             min-height: 100vh;
@@ -544,6 +711,7 @@
             padding: 20px;
         }
 
+        /* ==================== فوتر ==================== */
         .cyber-footer {
             background: var(--footer-bg);
             border-top: 2px solid var(--footer-heading);
@@ -606,6 +774,7 @@
             font-size: 0.8rem;
         }
 
+        /* ==================== پیام‌ها ==================== */
         .messages {
             position: fixed;
             top: 80px;
@@ -652,6 +821,27 @@
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(30px); }
             to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ==================== ریسپانسیو ==================== */
+        @media (max-width: 1200px) {
+            .dropdown-menu.mega-dropdown {
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+            
+            .dropdown-menu.mega-dropdown::-webkit-scrollbar {
+                width: 5px;
+            }
+            
+            .dropdown-menu.mega-dropdown::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            
+            .dropdown-menu.mega-dropdown::-webkit-scrollbar-thumb {
+                background: var(--header-accent);
+                border-radius: 3px;
+            }
         }
 
         @media (max-width: 992px) {
@@ -706,6 +896,7 @@
             }
         }
 
+        /* ==================== اسکرول‌بار ==================== */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -719,6 +910,7 @@
     </style>
 </head>
 <body>
+    <!-- ==================== لودینگ ==================== -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="ps-loader">
             <div class="ps-logo">
@@ -730,6 +922,7 @@
 
     <div class="cyber-background"></div>
 
+    <!-- ==================== هدر ==================== -->
     <header class="cyber-header" id="header">
         <div class="header-container">
             <a href="{% url 'shop:home' %}" class="logo">
@@ -740,24 +933,86 @@
             </a>
             
             <nav class="nav-menu">
-                <div class="nav-item">
-                    <a href="#" class="nav-link">
+                <!-- ========== منوی دسته‌بندی داینامیک ========== -->
+                <div class="nav-item has-dropdown" data-dropdown>
+                    <a href="javascript:void(0)" class="nav-link dropdown-toggle-btn">
                         <i class="fas fa-layer-group"></i>
                         دسته‌بندی
+                        {% if menu_categories %}
                         <i class="fas fa-chevron-down"></i>
+                        {% endif %}
                     </a>
-                    <div class="dropdown-menu">
-                        <a href="{% url 'shop:category_list' %}" class="dropdown-item">
-                            <i class="fas fa-list"></i> همه دسته‌بندی‌ها
-                        </a>
-                        <a href="{% url 'shop:game_list' %}" class="dropdown-item">
-                            <i class="fas fa-gamepad"></i> لیست بازی‌ها
-                        </a>
+                    
+                    {% if menu_categories %}
+                    <div class="dropdown-menu mega-dropdown">
+                        <!-- ستون: همه دسته‌بندی‌ها -->
+                        <div class="dropdown-column">
+                            <div class="dropdown-header">
+                                <i class="fas fa-list"></i>
+                                دسته‌بندی‌ها
+                            </div>
+                            <a href="{% url 'shop:category_list' %}" class="dropdown-item dropdown-item-highlight">
+                                <i class="fas fa-arrow-left"></i> مشاهده همه
+                            </a>
+                            {% for category in menu_categories|slice:":6" %}
+                            <a href="{{ category.get_absolute_url }}" class="dropdown-item">
+                                <i class="fas fa-folder"></i> {{ category.name|truncatechars:25 }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- ستون: بازی‌ها -->
+                        <div class="dropdown-column">
+                            <div class="dropdown-header">
+                                <i class="fas fa-gamepad"></i>
+                                بازی‌ها
+                            </div>
+                            <a href="{% url 'shop:game_list' %}" class="dropdown-item dropdown-item-highlight">
+                                <i class="fas fa-star"></i> همه بازی‌ها
+                            </a>
+                            <a href="{% url 'shop:game_list_by_platform' 'playstation' %}" class="dropdown-item">
+                                <i class="fab fa-playstation"></i> پلی استیشن
+                            </a>
+                            <a href="{% url 'shop:game_list_by_platform' 'xbox' %}" class="dropdown-item">
+                                <i class="fab fa-xbox"></i> ایکس باکس
+                            </a>
+                            <a href="{% url 'shop:game_list_by_platform' 'pc' %}" class="dropdown-item">
+                                <i class="fas fa-desktop"></i> کامپیوتر
+                            </a>
+                        </div>
+                        
+                        <!-- ستون: بر اساس نوع -->
+                        {% if menu_categories_by_type %}
+                        <div class="dropdown-column">
+                            <div class="dropdown-header">
+                                <i class="fas fa-tags"></i>
+                                بر اساس نوع
+                            </div>
+                            {% for type_name, cats in menu_categories_by_type.items %}
+                                {% if cats %}
+                                <div class="dropdown-group-title">{{ type_name }}</div>
+                                    {% for cat in cats|slice:":3" %}
+                                    <a href="{{ cat.get_absolute_url }}" class="dropdown-item">
+                                        <i class="fas fa-caret-left"></i> {{ cat.name|truncatechars:20 }}
+                                    </a>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
+                    {% endif %}
                 </div>
                 
-                <div class="nav-item">
-                    <a href="#" class="nav-link">
+                <!-- ========== دکمه لیست بازی‌ها ========== -->
+                <a href="{% url 'shop:game_list' %}" class="nav-link">
+                    <i class="fas fa-gamepad"></i>
+                    لیست بازی‌ها
+                </a>
+                
+                <!-- ========== منوی محتوا ========== -->
+                <div class="nav-item has-dropdown" data-dropdown>
+                    <a href="javascript:void(0)" class="nav-link dropdown-toggle-btn">
                         <i class="fas fa-newspaper"></i>
                         محتوا
                         <i class="fas fa-chevron-down"></i>
@@ -788,8 +1043,8 @@
             
             <div class="user-actions">
                 {% if user.is_authenticated %}
-                <div class="nav-item">
-                    <a href="#" class="nav-link">
+                <div class="nav-item has-dropdown" data-dropdown>
+                    <a href="javascript:void(0)" class="nav-link dropdown-toggle-btn">
                         <i class="fas fa-user"></i>
                         {{ user.username|truncatechars:8 }}
                         <i class="fas fa-chevron-down"></i>
@@ -832,6 +1087,7 @@
         </div>
     </header>
 
+    <!-- ==================== منوی موبایل ==================== -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
     <div class="mobile-menu" id="mobileMenu">
         <div class="mobile-menu-item">
@@ -839,11 +1095,26 @@
                 <i class="fas fa-home"></i> صفحه اصلی
             </a>
         </div>
+        
+        <!-- دسته‌بندی‌های داینامیک در موبایل -->
         <div class="mobile-menu-item">
-            <a href="{% url 'shop:category_list' %}" class="mobile-menu-link">
-                <i class="fas fa-list"></i> دسته‌بندی‌ها
-            </a>
+            <div class="mobile-menu-link mobile-menu-toggle" onclick="toggleMobileCategories(this)">
+                <i class="fas fa-layer-group"></i> 
+                دسته‌بندی‌ها
+                <i class="fas fa-chevron-down" style="margin-right: auto; transition: transform 0.3s;"></i>
+            </div>
+            <div class="mobile-submenu" style="display: none;">
+                <a href="{% url 'shop:category_list' %}" class="mobile-submenu-item">
+                    <i class="fas fa-list"></i> مشاهده همه
+                </a>
+                {% for category in menu_categories %}
+                <a href="{{ category.get_absolute_url }}" class="mobile-submenu-item">
+                    <i class="fas fa-folder"></i> {{ category.name|truncatechars:25 }}
+                </a>
+                {% endfor %}
+            </div>
         </div>
+        
         <div class="mobile-menu-item">
             <a href="{% url 'shop:game_list' %}" class="mobile-menu-link">
                 <i class="fas fa-gamepad"></i> لیست بازی‌ها
@@ -860,6 +1131,11 @@
             </a>
         </div>
         <div class="mobile-menu-item">
+            <a href="{% url 'shop:about' %}" class="mobile-menu-link">
+                <i class="fas fa-info-circle"></i> درباره ما
+            </a>
+        </div>
+        <div class="mobile-menu-item">
             <a href="{% url 'shop:cart' %}" class="mobile-menu-link">
                 <i class="fas fa-shopping-cart"></i> سبد خرید
                 {% if user.is_authenticated and user.cart.items.count > 0 %}
@@ -867,6 +1143,7 @@
                 {% endif %}
             </a>
         </div>
+        
         {% if user.is_authenticated %}
         <div class="mobile-menu-item">
             <a href="{% url 'shop:profile' %}" class="mobile-menu-link">
@@ -909,6 +1186,7 @@
         {% endif %}
     </div>
 
+    <!-- ==================== پیام‌ها ==================== -->
     {% if messages %}
     <div class="messages">
         {% for message in messages %}
@@ -919,12 +1197,14 @@
     </div>
     {% endif %}
 
+    <!-- ==================== محتوای اصلی ==================== -->
     <main class="main-content">
         <div class="container">
             {% block content %}{% endblock %}
         </div>
     </main>
 
+    <!-- ==================== فوتر ==================== -->
     <footer class="cyber-footer">
         <div class="footer-container">
             <div class="footer-section">
@@ -989,6 +1269,7 @@
     </footer>
 
     <script>
+        // ==================== لودینگ ====================
         (function() {
             var loadingOverlay = document.getElementById('loadingOverlay');
             
@@ -1009,28 +1290,32 @@
             setTimeout(hideLoading, 800);
         })();
 
+        // ==================== اسکرول هدر ====================
         window.addEventListener('scroll', function() {
             var header = document.getElementById('header');
-            if (window.scrollY > 30) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
+            if (header) {
+                if (window.scrollY > 30) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
             }
         });
 
+        // ==================== منوی موبایل ====================
         var mobileBtn = document.getElementById('mobileMenuBtn');
         var mobileMenu = document.getElementById('mobileMenu');
         var mobileOverlay = document.getElementById('mobileOverlay');
 
         function openMobileMenu() {
-            mobileMenu.classList.add('active');
-            mobileOverlay.classList.add('active');
+            if (mobileMenu) mobileMenu.classList.add('active');
+            if (mobileOverlay) mobileOverlay.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
         function closeMobileMenu() {
-            mobileMenu.classList.remove('active');
-            mobileOverlay.classList.remove('active');
+            if (mobileMenu) mobileMenu.classList.remove('active');
+            if (mobileOverlay) mobileOverlay.classList.remove('active');
             document.body.style.overflow = '';
         }
 
@@ -1048,6 +1333,65 @@
             }
         });
 
+        // ==================== زیرمنوی موبایل ====================
+        window.toggleMobileCategories = function(element) {
+            var submenu = element.nextElementSibling;
+            var icon = element.querySelector('.fa-chevron-down');
+            
+            if (!submenu) return;
+            
+            if (submenu.style.display === 'none' || submenu.style.display === '') {
+                submenu.style.display = 'block';
+                if (icon) icon.style.transform = 'rotate(180deg)';
+                element.classList.add('active');
+            } else {
+                submenu.style.display = 'none';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+                element.classList.remove('active');
+            }
+        };
+
+        // ==================== مدیریت dropdown با کلیک ====================
+        document.querySelectorAll('.nav-item[data-dropdown]').forEach(function(item) {
+            var toggleBtn = item.querySelector('.dropdown-toggle-btn');
+            
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // بستن بقیه dropdown ها
+                    document.querySelectorAll('.nav-item[data-dropdown].open').forEach(function(other) {
+                        if (other !== item) {
+                            other.classList.remove('open');
+                        }
+                    });
+                    
+                    // toggle کردن dropdown فعلی
+                    item.classList.toggle('open');
+                });
+            }
+        });
+
+        // بستن dropdown با کلیک بیرون
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav-item[data-dropdown]')) {
+                document.querySelectorAll('.nav-item[data-dropdown].open').forEach(function(item) {
+                    item.classList.remove('open');
+                });
+            }
+        });
+
+        // بستن dropdown با ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.nav-item[data-dropdown].open').forEach(function(item) {
+                    item.classList.remove('open');
+                });
+            }
+        });
+
+        // ==================== بررسی عکس‌ها ====================
         document.querySelectorAll('img').forEach(function(img) {
             img.onerror = function() {
                 if (this.closest('.logo-icon')) {
@@ -1068,6 +1412,17 @@
                 }
             };
         });
+
+        // ==================== بستن پیام‌ها بعد از 5 ثانیه ====================
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(function(alert) {
+                alert.style.transition = 'opacity 0.5s ease';
+                alert.style.opacity = '0';
+                setTimeout(function() {
+                    alert.remove();
+                }, 500);
+            });
+        }, 5000);
     </script>
 
     {% block extra_js %}{% endblock %}

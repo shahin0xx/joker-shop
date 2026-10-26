@@ -4,25 +4,113 @@ from django.contrib.auth.models import User
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import *
 from django import forms
+from .models import *
+
+
+# ==================== فرم‌های سفارشی ====================
+
+class GameListAdminForm(forms.ModelForm):
+    """فرم ادمین برای GameList با ویژگی‌های تیک‌زدنی و فارسی"""
+    
+    features = forms.MultipleChoiceField(
+        choices=GameList.GAME_FEATURES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'features-checkbox-grid',
+        }),
+        label="ویژگی‌های بازی",
+        help_text="ویژگی‌های مورد نظر را انتخاب کنید"
+    )
+    
+    # فیلد تاریخ با ویجت و فرمت مشخص
+    release_date = forms.DateField(
+        required=False,
+        label="تاریخ انتشار",
+        widget=forms.DateInput(
+            attrs={
+                'type': 'date',
+                'class': 'vDateField',
+            },
+            format='%Y-%m-%d'
+        ),
+        input_formats=['%Y-%m-%d', '%Y/%m/%d', '%d/%m/%Y'],
+        help_text="تاریخ را به فرمت YYYY-MM-DD وارد کنید (مثال: 2024-01-15)"
+    )
+    
+    class Meta:
+        model = GameList
+        # لیست صریح فیلدها به جای '__all__' برای جلوگیری از تداخل با fieldsets
+        fields = [
+            'name', 'platform', 'image',
+            'description', 'story_summary', 'features',
+            'developer', 'publisher', 'release_date', 'trailer_url',
+            'rating', 'is_active',
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # اگر بازی قبلاً ذخیره شده، ویژگی‌های فعلی را نمایش بده
+        if self.instance and self.instance.pk and self.instance.features:
+            initial_features = self.instance.get_features_list()
+            self.initial['features'] = initial_features
+        # برای فرمت درست تاریخ در حالت ویرایش
+        if self.instance and self.instance.pk and self.instance.release_date:
+            self.initial['release_date'] = self.instance.release_date.strftime('%Y-%m-%d')
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # ویژگی‌های انتخاب شده را به صورت رشته کاما جدا ذخیره کن
+        features = self.cleaned_data.get('features', [])
+        instance.features = ','.join(features)
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
+
+
+# ==================== Inlineها ====================
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
     can_delete = False
     verbose_name_plural = 'پروفایل کاربر'
     fields = [
-        'referral_code', 
-        'credits', 
-        'full_name', 
-        'phone', 
-        'address', 
+        'referral_code',
+        'credits',
+        'full_name',
+        'phone',
+        'address',
         'postal_code',
         'created_at',
         'updated_at'
     ]
     readonly_fields = ['referral_code', 'created_at', 'updated_at']
     extra = 0
+
+
+class CartItemInline(admin.TabularInline):
+    model = CartItem
+    extra = 0
+    readonly_fields = ['product', 'quantity', 'total_price']
+    can_delete = False
+    
+    def total_price(self, obj):
+        return f'{obj.total_price():,} تومان'
+    total_price.short_description = 'قیمت کل'
+
+
+class PaymentReceiptInline(admin.StackedInline):
+    model = PaymentReceipt
+    extra = 0
+    readonly_fields = ['receipt_image', 'payment_method', 'uploaded_at']
+    can_delete = False
+    
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+# ==================== Admin: User ====================
 
 class UserAdmin(BaseUserAdmin):
     inlines = (UserProfileInline,)
@@ -44,6 +132,9 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('username', 'email', 'password1', 'password2'),
         }),
     )
+
+
+# ==================== Admin: SiteSettings ====================
 
 class SiteSettingsAdmin(admin.ModelAdmin):
     list_display = ['site_name', 'theme', 'enable_custom_colors', 'show_colors', 'updated_at']
@@ -97,7 +188,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     
     def show_colors(self, obj):
         colors = [
-            obj.header_bg, obj.header_accent, obj.nav_bg, 
+            obj.header_bg, obj.header_accent, obj.nav_bg,
             obj.button_primary_bg, obj.footer_bg, obj.accent_1
         ]
         html = '<div style="display: flex; gap: 5px;">'
@@ -109,6 +200,9 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     
     def has_add_permission(self, request):
         return not SiteSettings.objects.exists()
+
+
+# ==================== Admin: Category ====================
 
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'type', 'game_platform', 'products_count', 'is_active', 'created_at']
@@ -132,53 +226,17 @@ class CategoryAdmin(admin.ModelAdmin):
     products_count.short_description = 'تعداد محصولات'
 
 
-# shop/admin.py - نسخه صحیح و بدون خطا
-# ==================== فرم مخصوص GameList با ویژگی‌های تیک‌زدنی ====================
-class GameListAdminForm(forms.ModelForm):
-    """فرم ادمین برای GameList با ویژگی‌های تیک‌زدنی و فارسی"""
-    
-    features = forms.MultipleChoiceField(
-        choices=GameList.GAME_FEATURES,
-        required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={
-            'class': 'features-checkbox-grid',
-            'style': 'display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;'
-        }),
-        label="ویژگی‌های بازی",
-        help_text="ویژگی‌های مورد نظر را انتخاب کنید"
-    )
-    
-    class Meta:
-        model = GameList
-        fields = '__all__'
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # اگر بازی قبلاً ذخیره شده، ویژگی‌های فعلی را نمایش بده
-        if self.instance and self.instance.pk and self.instance.features:
-            initial_features = self.instance.get_features_list()
-            self.initial['features'] = initial_features
-    
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        # ویژگی‌های انتخاب شده را به صورت رشته کاما جدا ذخیره کن
-        features = self.cleaned_data.get('features', [])
-        instance.features = ','.join(features)
-        if commit:
-            instance.save()
-            self.save_m2m()
-        return instance
+# ==================== Admin: GameList ====================
 
-
-# ==================== GameList Admin ====================
 class GameListAdmin(admin.ModelAdmin):
     form = GameListAdminForm
     
-    list_display = ['name', 'platform', 'developer', 'rating', 'is_active', 'created_at']
-    list_filter = ['platform', 'is_active', 'created_at']
+    list_display = ['name', 'platform', 'developer', 'release_date', 'rating', 'is_active', 'created_at']
+    list_filter = ['platform', 'is_active', 'release_date', 'created_at']
     search_fields = ['name', 'developer', 'publisher', 'description', 'story_summary']
     list_editable = ['is_active', 'rating']
     list_per_page = 25
+    date_hierarchy = 'release_date'
     
     fieldsets = (
         ('اطلاعات اصلی بازی', {
@@ -209,11 +267,9 @@ class GameListAdmin(admin.ModelAdmin):
     def products_count(self, obj):
         return obj.products.count()
     products_count.short_description = 'تعداد محصولات مرتبط'
-    
-    class Media:
-        css = {
-            'all': ('admin/css/features-style.css',)
-        }
+
+
+# ==================== Admin: Product ====================
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'game_list', 'price_display', 'is_available', 'is_new', 'created_at']
@@ -237,15 +293,8 @@ class ProductAdmin(admin.ModelAdmin):
     price_display.short_description = 'قیمت'
     price_display.admin_order_field = 'price'
 
-class CartItemInline(admin.TabularInline):
-    model = CartItem
-    extra = 0
-    readonly_fields = ['product', 'quantity', 'total_price']
-    can_delete = False
-    
-    def total_price(self, obj):
-        return f'{obj.total_price():,} تومان'
-    total_price.short_description = 'قیمت کل'
+
+# ==================== Admin: Cart ====================
 
 class CartAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'total_price_display', 'total_quantity', 'created_at']
@@ -266,6 +315,7 @@ class CartAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
+
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ['id', 'cart', 'product', 'quantity', 'total_price_display']
     search_fields = ['cart__user__username', 'product__name']
@@ -277,14 +327,8 @@ class CartItemAdmin(admin.ModelAdmin):
     total_price_display.short_description = 'قیمت کل'
     total_price_display.admin_order_field = 'quantity'
 
-class PaymentReceiptInline(admin.StackedInline):
-    model = PaymentReceipt
-    extra = 0
-    readonly_fields = ['receipt_image', 'payment_method', 'uploaded_at']
-    can_delete = False
-    
-    def has_add_permission(self, request, obj=None):
-        return False
+
+# ==================== Admin: Order ====================
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['order_number', 'user', 'full_name', 'show_amount', 'status_colored', 'created_at']
@@ -317,24 +361,28 @@ class OrderAdmin(admin.ModelAdmin):
     
     def status_colored(self, obj):
         colors = {
+            'draft': '#888888',
             'pending': '#FFA500',
             'paid': '#00FFFF',
             'completed': '#00FF00',
             'cancelled': '#FF0000',
-            'returned': '#800080',
         }
         texts = {
+            'draft': 'پیش‌نویس',
             'pending': 'در انتظار پرداخت',
             'paid': 'پرداخت شده',
             'completed': 'تکمیل شده',
             'cancelled': 'لغو شده',
-            'returned': 'مرجوع شده',
         }
-        return mark_safe(f'<span style="color: {colors.get(obj.status, "#FFFFFF")}; background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 12px;">{texts.get(obj.status, obj.status)}</span>')
+        return mark_safe(
+            f'<span style="color: {colors.get(obj.status, "#FFFFFF")}; '
+            f'background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 12px;">'
+            f'{texts.get(obj.status, obj.status)}</span>'
+        )
     status_colored.short_description = 'وضعیت'
     status_colored.admin_order_field = 'status'
     
-    actions = ['mark_as_paid', 'mark_as_completed', 'mark_as_cancelled', 'mark_as_returned']
+    actions = ['mark_as_paid', 'mark_as_completed', 'mark_as_cancelled']
     
     def mark_as_paid(self, request, queryset):
         updated = queryset.update(status='paid')
@@ -350,11 +398,9 @@ class OrderAdmin(admin.ModelAdmin):
         updated = queryset.update(status='cancelled')
         self.message_user(request, f'{updated} سفارش به وضعیت "لغو شده" تغییر یافت.')
     mark_as_cancelled.short_description = 'تغییر وضعیت به لغو شده'
-    
-    def mark_as_returned(self, request, queryset):
-        updated = queryset.update(status='returned')
-        self.message_user(request, f'{updated} سفارش به وضعیت "مرجوع شده" تغییر یافت.')
-    mark_as_returned.short_description = 'تغییر وضعیت به مرجوع شده'
+
+
+# ==================== Admin: PaymentReceipt ====================
 
 class PaymentReceiptAdmin(admin.ModelAdmin):
     list_display = ['order_link', 'payment_method', 'image_preview', 'uploaded_at']
@@ -391,11 +437,13 @@ class PaymentReceiptAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
+
+# ==================== Admin: DiscountCode ====================
+
 class DiscountCodeAdmin(admin.ModelAdmin):
     list_display = ['code', 'user', 'discount_display', 'show_status', 'expires_at', 'created_at']
     list_filter = ['is_used', 'discount_type', 'expires_at', 'created_at']
     search_fields = ['code', 'user__username']
-    list_editable = []
     autocomplete_fields = ['user']
     date_hierarchy = 'expires_at'
     
@@ -437,6 +485,9 @@ class DiscountCodeAdmin(admin.ModelAdmin):
         self.message_user(request, f'{updated} کد تخفیف به وضعیت "فعال" تغییر یافت.')
     mark_as_unused.short_description = 'تغییر وضعیت به فعال'
 
+
+# ==================== Admin: ChatMessage ====================
+
 class ChatMessageAdmin(admin.ModelAdmin):
     list_display = ['user', 'message_short', 'get_sender', 'get_read', 'created_at']
     list_filter = ['is_admin', 'is_read', 'created_at']
@@ -466,27 +517,32 @@ class ChatMessageAdmin(admin.ModelAdmin):
     def full_message_display(self, obj):
         result = []
         if obj.message:
-            result.append(f'<div style="margin-bottom: 10px; padding: 10px; background: #333; border-radius: 5px;"><strong>متن پیام:</strong><br>{obj.message}</div>')
+            result.append(
+                f'<div style="margin-bottom: 10px; padding: 10px; background: #333; '
+                f'border-radius: 5px; color: #fff;"><strong>متن پیام:</strong><br>{obj.message}</div>'
+            )
         if obj.image:
-            result.append(f'<div style="margin-bottom: 10px;"><strong>تصویر:</strong><br><img src="{obj.image.url}" style="max-width: 300px; border-radius: 5px;" /></div>')
+            result.append(
+                f'<div style="margin-bottom: 10px;"><strong>تصویر:</strong><br>'
+                f'<img src="{obj.image.url}" style="max-width: 300px; border-radius: 5px;" /></div>'
+            )
         if obj.video:
-            result.append(f'<div style="margin-bottom: 10px;"><strong>فیلم:</strong><br><video src="{obj.video.url}" controls style="max-width: 300px; border-radius: 5px;"></video></div>')
+            result.append(
+                f'<div style="margin-bottom: 10px;"><strong>فیلم:</strong><br>'
+                f'<video src="{obj.video.url}" controls style="max-width: 300px; border-radius: 5px;"></video></div>'
+            )
         if not result:
             return 'محتوا وجود ندارد'
         return mark_safe(''.join(result))
     full_message_display.short_description = 'مشاهده کامل'
     
     def get_sender(self, obj):
-        if obj.is_admin:
-            return 'ادمین'
-        return 'کاربر'
+        return 'ادمین' if obj.is_admin else 'کاربر'
     get_sender.short_description = 'فرستنده'
     get_sender.admin_order_field = 'is_admin'
     
     def get_read(self, obj):
-        if obj.is_read:
-            return 'خوانده شده'
-        return 'خوانده نشده'
+        return 'خوانده شده' if obj.is_read else 'خوانده نشده'
     get_read.short_description = 'وضعیت'
     get_read.admin_order_field = 'is_read'
     
@@ -501,6 +557,9 @@ class ChatMessageAdmin(admin.ModelAdmin):
         updated = queryset.update(is_read=False)
         self.message_user(request, f'{updated} پیام به وضعیت "خوانده نشده" تغییر یافت.')
     mark_unread.short_description = 'علامت‌گذاری به عنوان خوانده نشده'
+
+
+# ==================== Admin: Video ====================
 
 class VideoAdmin(admin.ModelAdmin):
     list_display = ['title', 'thumbnail_preview', 'is_active', 'created_at']
@@ -533,6 +592,9 @@ class VideoAdmin(admin.ModelAdmin):
             return mark_safe(f'<video src="{obj.video_file.url}" controls style="max-width: 400px; max-height: 300px; border-radius: 10px;"></video>')
         return 'ویدیویی وجود ندارد'
     video_preview.short_description = 'پیش‌نمایش ویدیو'
+
+
+# ==================== Admin: News ====================
 
 class NewsAdmin(admin.ModelAdmin):
     list_display = ['title', 'image_preview', 'views', 'is_active', 'created_at']
@@ -567,9 +629,15 @@ class NewsAdmin(admin.ModelAdmin):
     
     def content_preview(self, obj):
         if obj.content:
-            return mark_safe(f'<div style="background: #f5f5f5; padding: 10px; border-radius: 5px; max-height: 200px; overflow-y: auto;">{obj.content}</div>')
+            return mark_safe(
+                f'<div style="background: #f5f5f5; padding: 10px; border-radius: 5px; '
+                f'max-height: 200px; overflow-y: auto; color: #000;">{obj.content}</div>'
+            )
         return 'محتوا وارد نشده'
     content_preview.short_description = 'پیش‌نمایش محتوا'
+
+
+# ==================== Admin: Slider ====================
 
 class SliderAdmin(admin.ModelAdmin):
     list_display = ['id', 'image_preview', 'is_active', 'created_at']
@@ -598,6 +666,9 @@ class SliderAdmin(admin.ModelAdmin):
             return mark_safe(f'<img src="{obj.image.url}" style="max-width: 600px; max-height: 300px; border-radius: 10px;" />')
         return 'تصویری وجود ندارد'
     image_preview_large.short_description = 'پیش‌نمایش بزرگ'
+
+
+# ==================== Admin: ReferralSettings ====================
 
 class ReferralSettingsAdmin(admin.ModelAdmin):
     list_display = ['id', 'is_active', 'referrer_discount_display', 'new_user_discount_display', 'updated_at']
@@ -633,6 +704,9 @@ class ReferralSettingsAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return not ReferralSettings.objects.exists()
 
+
+# ==================== Admin: ReferralLog ====================
+
 class ReferralLogAdmin(admin.ModelAdmin):
     list_display = ['referrer', 'new_user', 'discount_code_link', 'created_at']
     list_filter = ['created_at']
@@ -650,7 +724,7 @@ class ReferralLogAdmin(admin.ModelAdmin):
         return False
 
 
-# در admin.py بعد از سایر مدل‌ها اضافه کنید:
+# ==================== Admin: AboutUs ====================
 
 class AboutUsAdmin(admin.ModelAdmin):
     list_display = ['title', 'is_active', 'updated_at']
@@ -668,9 +742,10 @@ class AboutUsAdmin(admin.ModelAdmin):
     readonly_fields = ['updated_at']
     
     def has_add_permission(self, request):
-        # فقط در صورتی که هیچ رکوردی وجود نداشته باشد، اجازه اضافه کردن بده
         return not AboutUs.objects.exists()
 
+
+# ==================== ثبت در ادمین ====================
 
 admin.site.register(AboutUs, AboutUsAdmin)
 admin.site.unregister(User)

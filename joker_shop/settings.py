@@ -16,7 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'colorfield', 
+    'colorfield',
     'shop',
     'ai_assistant',
 ]
@@ -29,7 +29,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'shop.views.admin_access_middleware'
+    # این میدل‌ور را کامنت کنید تا مشکل ادمین حل شود
+    # 'shop.views.admin_access_middleware'
 ]
 
 ROOT_URLCONF = 'joker_shop.urls'
@@ -48,7 +49,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'shop.context_processors.site_settings',  # اضافه کردن context processor
+                'shop.context_processors.site_settings',
+                'shop.context_processors.categories_menu',
             ],
         },
     },
@@ -64,18 +66,10 @@ DATABASES = {
 }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 LANGUAGE_CODE = 'fa-ir'
@@ -83,7 +77,8 @@ TIME_ZONE = 'Asia/Tehran'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
